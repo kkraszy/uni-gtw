@@ -63,6 +63,7 @@ static void radio_hw_cfg_from_config(radio_hw_cfg_t *out)
     out->gpio_gdo0   = g_config.radio.gpio_gdo0;
     out->gpio_rst    = g_config.radio.gpio_rst;
     out->gpio_busy   = g_config.radio.gpio_busy;
+    out->gpio_pa_enable = g_config.radio.gpio_pa_enable;
     out->spi_freq_hz = g_config.radio.spi_freq_hz;
 }
 
@@ -212,6 +213,11 @@ static void radio_do_deinit(void)
         s_ops = NULL;
     }
 
+    if (s_active_cfg.gpio_pa_enable >= 0) {
+        gpio_reset_pin(s_active_cfg.gpio_pa_enable);
+        ESP_LOGI(TAG, "PA enable GPIO %d reset", s_active_cfg.gpio_pa_enable);
+    }
+
     spi_bus_free(SPI2_HOST);
 
     s_initialized = false;
@@ -249,6 +255,14 @@ static esp_err_t radio_do_init(const radio_hw_cfg_t *hw)
         s_radio_queue = NULL;
         s_radio_state = RADIO_STATE_ERROR;
         return err;
+    }
+
+    /* ── PA enable GPIO (optional, driven high before driver init) ── */
+    if (hw->gpio_pa_enable >= 0) {
+        gpio_reset_pin(hw->gpio_pa_enable);
+        gpio_set_direction(hw->gpio_pa_enable, GPIO_MODE_OUTPUT);
+        gpio_set_level(hw->gpio_pa_enable, 1);
+        ESP_LOGI(TAG, "PA enable GPIO %d driven high", hw->gpio_pa_enable);
     }
 
     /* ── Select driver ── */

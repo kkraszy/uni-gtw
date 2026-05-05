@@ -129,6 +129,7 @@ void config_init(void)
     g_config.radio.gpio_gdo0   = CONFIG_RADIO_DEFAULT_GDO0;
     g_config.radio.gpio_rst    = CONFIG_RADIO_DEFAULT_RST;
     g_config.radio.gpio_busy   = CONFIG_RADIO_DEFAULT_BUSY;
+    g_config.radio.gpio_pa_enable = CONFIG_RADIO_DEFAULT_PA_ENABLE;
     g_config.radio.spi_freq_hz = CONFIG_RADIO_DEFAULT_SPI_FREQ;
 
     set_default_hostname();

@@ -182,11 +182,6 @@ static esp_err_t sx1262_ops_init(const radio_hw_cfg_t *hw,
     gpio_set_pull_mode(s_busy_gpio, GPIO_PULLDOWN_ONLY);
   }
 
-  /* ── PA enable — GPIO 2 driven high to power external PA ── */
-  gpio_reset_pin(2);
-  gpio_set_direction(2, GPIO_MODE_OUTPUT);
-  gpio_set_level(2, 1);
-
   /* ── DIO1 GPIO — input, POSEDGE interrupt; ISR installed by radio.c ── */
   gpio_config_t io = {
       .pin_bit_mask = 1ULL << hw->gpio_gdo0,
@@ -279,7 +274,7 @@ static esp_err_t sx1262_ops_init(const radio_hw_cfg_t *hw,
 
   /* ── 10. SetTxParams(14 dBm, RAMP_200US = 0x04) ── */
   {
-    uint8_t p[2] = {14, 0x04};
+    uint8_t p[2] = {0x16, 0x04};
     sx1262_cmd(SX_SET_TX_PARAMS, p, 2);
   }
 
@@ -385,8 +380,7 @@ static void sx1262_ops_enter_idle(void) {
 
 static void sx1262_ops_enter_rx(void) {
     ESP_LOGI(TAG, "enter_rx");
-  /* SetRfFrequency for channel 0, then SetRx(continuous) */
-  sx1262_set_freq(sx1262_channel_freq[0]);
+ sx1262_set_freq(sx1262_channel_freq[0]);
   uint8_t p[2] = {0xFF, 0xFF}; /* use 3-byte timeout 0xFFFFFF */
   uint8_t pp[3] = {0xFF, 0xFF, 0xFF};
   (void)p;

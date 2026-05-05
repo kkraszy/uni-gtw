@@ -28,6 +28,7 @@ interface RadioConfig {
   gpio_gdo0: number;
   gpio_rst: number;
   gpio_busy: number;
+  gpio_pa_enable: number;
   spi_freq_hz: number;
 }
 
@@ -52,12 +53,14 @@ function findGpioDuplicates(radio: RadioConfig): Set<keyof RadioConfig> {
     "gpio_sck",
     "gpio_csn",
     "gpio_gdo0",
+    "gpio_pa_enable",
     ...(radio.type === "sx1262" ? (["gpio_rst", "gpio_busy"] as (keyof RadioConfig)[]) : []),
   ];
   const seen = new Map<number, keyof RadioConfig>();
   const dupes = new Set<keyof RadioConfig>();
   for (const f of fields) {
     const v = radio[f] as number;
+    if (v < 0) continue; // -1 means disabled/not assigned — never a conflict
     if (seen.has(v)) {
       dupes.add(f);
       dupes.add(seen.get(v)!);
@@ -90,11 +93,13 @@ function GpioInput({
   value,
   error,
   onChange,
+  min = 0,
 }: {
   label: string;
   value: number;
   error: boolean;
   onChange: (v: number) => void;
+  min?: number;
 }) {
   return (
     <div class="flex items-center gap-2">
@@ -102,14 +107,18 @@ function GpioInput({
       <input
         type="number"
         value={value}
-        min={0}
+        min={min}
         max={39}
-        onInput={(e) => onChange(parseInt((e.target as HTMLInputElement).value) || 0)}
+        onInput={(e) => {
+          const parsed = parseInt((e.target as HTMLInputElement).value);
+          onChange(isNaN(parsed) ? min : parsed);
+        }}
         class={`w-20 bg-zinc-800 text-zinc-100 border rounded px-2 py-1 text-xs font-mono ${
           error ? "border-red-500" : "border-zinc-600"
         }`}
       />
       {error && <span class="text-red-400 text-xs">duplicate</span>}
+      {!error && value < 0 && <span class="text-zinc-500 text-xs">disabled</span>}
     </div>
   );
 }
@@ -171,7 +180,10 @@ export function Settings() {
 
   useEffect(() => {
     const handler = () =>
-      radioSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      radioSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     window.addEventListener("settings:scroll-radio", handler);
     return () => window.removeEventListener("settings:scroll-radio", handler);
   }, []);
@@ -327,7 +339,10 @@ export function Settings() {
                     type="password"
                     value={draft.web_password}
                     onInput={(e) =>
-                      setDraft({ ...draft, web_password: (e.target as HTMLInputElement).value })
+                      setDraft({
+                        ...draft,
+                        web_password: (e.target as HTMLInputElement).value,
+                      })
                     }
                     class="w-full bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs font-mono"
                   />
@@ -412,6 +427,13 @@ export function Settings() {
                       />
                     </>
                   )}
+                  <GpioInput
+                    label="PA EN"
+                    value={draft.radio.gpio_pa_enable}
+                    error={gpioDupes.has("gpio_pa_enable")}
+                    onChange={(v) => updateRadio("gpio_pa_enable", v)}
+                    min={-1}
+                  />
                   {gpioDupes.size > 0 && (
                     <p class="text-red-400 text-xs">
                       Each GPIO pin must be assigned to exactly one signal.
@@ -481,7 +503,10 @@ export function Settings() {
                 value={draft.hostname}
                 maxLength={63}
                 onInput={(e) =>
-                  setDraft({ ...draft, hostname: (e.target as HTMLInputElement).value })
+                  setDraft({
+                    ...draft,
+                    hostname: (e.target as HTMLInputElement).value,
+                  })
                 }
                 class="w-full bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs font-mono"
               />

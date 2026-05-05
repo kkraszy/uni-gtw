@@ -20,6 +20,7 @@
 #define CONFIG_RADIO_DEFAULT_TYPE      radio_type_t_cc1101
 #define CONFIG_RADIO_DEFAULT_RST       (-1)
 #define CONFIG_RADIO_DEFAULT_BUSY      (-1)
+#define CONFIG_RADIO_DEFAULT_PA_ENABLE (-1)
 
 /* ── Global config state ─────────────────────────────────────────────────── */
 

@@ -20,6 +20,7 @@ typedef struct {
     int            gpio_gdo0;   /* CC1101: GDO0;  SX1262: DIO1 (IRQ) */
     int            gpio_rst;    /* SX1262 RST  (-1 for CC1101)        */
     int            gpio_busy;   /* SX1262 BUSY (-1 for CC1101)        */
+    int            gpio_pa_enable; /* External PA enable output (-1 to disable) */
     int            spi_freq_hz;
 } radio_hw_cfg_t;
 
