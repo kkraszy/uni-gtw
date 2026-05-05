@@ -1,6 +1,16 @@
 set(WEB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/web")
 set(WEB_DIST_DIR "${WEB_DIR}/dist")
 
+# Create placeholder dist files if they don't exist so CMake can configure
+# before the frontend has been built (e.g. on a fresh CI checkout).
+# The pnpm_build step will overwrite them with real content during the build.
+foreach(_web_placeholder index.html app.js app.css)
+    if(NOT EXISTS "${WEB_DIST_DIR}/${_web_placeholder}")
+        file(MAKE_DIRECTORY "${WEB_DIST_DIR}")
+        file(WRITE "${WEB_DIST_DIR}/${_web_placeholder}" "")
+    endif()
+endforeach()
+
 # ── Schema code generation paths ──────────────────────────────────────────────
 # Defined outside the early-expansion guard so the variable is available when
 # idf_component_register runs (it runs in both modes).
