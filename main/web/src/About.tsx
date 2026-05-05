@@ -40,7 +40,9 @@ export function About() {
         <Logo size={64} />
         <div>
           <h1 class="text-2xl font-bold tracking-wide">uni-gtw</h1>
-          <p class="text-zinc-400 text-sm mt-0.5">ESP32 RF Gateway for Cosmo blinds</p>
+          <p class="text-zinc-400 text-sm mt-0.5">
+            ESP32 RF Gateway compatible with Mobilus COSMO blinds
+          </p>
         </div>
       </div>
 
