@@ -425,7 +425,6 @@ static void sx1262_ops_set_channel(uint8_t ch) {
 static esp_err_t sx1262_ops_handle_rx_irq(uint8_t *buf, uint8_t len,
                                           int8_t *rssi_dbm,
                                           int16_t *freq_off_khz) {
-  ESP_LOGI(TAG, "RX IRQ");
   xSemaphoreTake(s_spi_mutex, portMAX_DELAY);
 
   /* Read and clear IRQ status */
@@ -440,7 +439,6 @@ static esp_err_t sx1262_ops_handle_rx_irq(uint8_t *buf, uint8_t len,
 
   if (!(irq & 0x0002)) {
     /* RX_DONE bit not set — spurious or timeout IRQ */
-    ESP_LOGW(TAG, "RX IRQ: spurious or timeout, irq=%04X", irq);
     uint8_t p[3] = {0xFF, 0xFF, 0xFF};
     sx1262_cmd(SX_SET_RX, p, 3);
     xSemaphoreGive(s_spi_mutex);
