@@ -18,6 +18,16 @@ httpd_handle_t webserver_get_handle(void);
 /* Returns true if the request passes the password check (always true if auth is disabled). */
 bool webserver_check_auth(httpd_req_t *req);
 
+/* Sends 401 and returns ESP_OK from the calling handler if auth fails. */
+#define REQUIRE_AUTH(req)                                                       \
+    do {                                                                        \
+        if (!webserver_check_auth(req)) {                                       \
+            httpd_resp_set_hdr(req, "WWW-Authenticate", "X-Auth");             \
+            httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "Unauthorized");  \
+            return ESP_OK;                                                      \
+        }                                                                       \
+    } while (0)
+
 /**
  * Broadcast a packet_rx or packet_tx WebSocket message to all clients.
  * raw_bytes/raw_len: the raw CC1101 bytes before decoding.

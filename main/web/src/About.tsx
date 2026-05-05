@@ -1,7 +1,9 @@
 import { useEffect, useState } from "preact/hooks";
-import { ExternalLink } from "lucide-preact";
+import { Cpu, ExternalLink, Package } from "lucide-preact";
 import { Logo } from "./Logo";
-import { InfoTable, InfoRow } from "./InfoTable";
+import { InfoTable } from "./ui/InfoTable";
+import type { InfoRow } from "./ui/InfoTable";
+import { SectionCard } from "./ui/SectionCard";
 import { InfoResponse } from "./wsTypes";
 
 export function About() {
@@ -34,7 +36,6 @@ export function About() {
 
   return (
     <div class="p-4 md:p-6 max-w-xl mx-auto">
-      {/* Logo + title */}
       <div class="flex items-center gap-4 mb-8">
         <Logo size={64} />
         <div>
@@ -43,35 +44,25 @@ export function About() {
         </div>
       </div>
 
-      {/* Links */}
-      <section>
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">Links</h2>
+      <SectionCard icon={ExternalLink} title="Links">
         <a
           href="https://github.com/alufers/uni-gtw"
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 border border-zinc-800 hover:border-zinc-600 rounded-lg px-4 py-2.5 transition-colors"
+          class="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 border border-zinc-800 hover:border-zinc-600 rounded-lg px-4 py-2.5 transition-colors self-start"
         >
           <ExternalLink size={14} class="shrink-0" />
           github.com/alufers/uni-gtw
         </a>
-      </section>
+      </SectionCard>
 
-      {/* Firmware info */}
-      <section class="mb-6">
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">Firmware</h2>
-        <div class="border border-zinc-800 rounded-lg px-4">
-          <InfoTable rows={firmwareRows} />
-        </div>
-      </section>
+      <SectionCard icon={Package} title="Firmware">
+        <InfoTable rows={firmwareRows} />
+      </SectionCard>
 
-      {/* Device info */}
-      <section class="mb-6">
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">Device</h2>
-        <div class="border border-zinc-800 rounded-lg px-4">
-          <InfoTable rows={deviceRows} />
-        </div>
-      </section>
+      <SectionCard icon={Cpu} title="Device">
+        <InfoTable rows={deviceRows} />
+      </SectionCard>
     </div>
   );
 }

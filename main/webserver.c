@@ -66,15 +66,6 @@ static bool check_auth(httpd_req_t *req)
 
 bool webserver_check_auth(httpd_req_t *req) { return check_auth(req); }
 
-#define REQUIRE_AUTH(req)                                                     \
-    do {                                                                      \
-        if (!check_auth(req)) {                                               \
-            httpd_resp_set_hdr(req, "WWW-Authenticate", "X-Auth");            \
-            httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "Unauthorized"); \
-            return ESP_OK;                                                    \
-        }                                                                     \
-    } while (0)
-
 /* ── Embedded file handlers ──────────────────────────────────────────────── */
 
 #define STATIC_FILE_HANDLER(sym, ctype)                                          \

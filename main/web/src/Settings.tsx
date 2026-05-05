@@ -5,6 +5,8 @@ import { Alert } from "./ui/Alert";
 import { Button } from "./ui/Button";
 import { Collapsible } from "./ui/Collapsible";
 import { Modal } from "./ui/Modal";
+import { PageLoader } from "./ui/PageLoader";
+import { SectionCard } from "./ui/SectionCard";
 
 interface MqttConfig {
   enabled: boolean;
@@ -108,28 +110,6 @@ function GpioInput({
         }`}
       />
       {error && <span class="text-red-400 text-xs">duplicate</span>}
-    </div>
-  );
-}
-
-/* ── Section card wrapper ────────────────────────────────────────────────────── */
-
-function SectionCard({
-  icon: Icon,
-  title,
-  children,
-}: {
-  icon: typeof Monitor;
-  title: string;
-  children: preact.ComponentChildren;
-}) {
-  return (
-    <div class="bg-zinc-900 border border-zinc-800 rounded-lg mb-4 overflow-hidden">
-      <div class="flex items-center gap-2.5 px-4 py-3 border-b border-zinc-800">
-        <Icon size={15} class="text-zinc-400 shrink-0" />
-        <span class="text-sm font-semibold text-zinc-200">{title}</span>
-      </div>
-      <div class="p-4 flex flex-col gap-5">{children}</div>
     </div>
   );
 }
@@ -286,9 +266,10 @@ export function Settings() {
 
   if (saveStatus === "loading" || !draft) {
     return (
-      <div class="h-full flex items-center justify-center text-zinc-500 text-xs">
-        {saveStatus === "error" ? "Failed to load settings." : "Loading settings…"}
-      </div>
+      <PageLoader
+        message={saveStatus === "error" ? "Failed to load settings." : "Loading settings…"}
+        error={saveStatus === "error"}
+      />
     );
   }
 

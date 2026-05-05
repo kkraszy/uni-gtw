@@ -25,15 +25,6 @@ static const char *TAG = "ota";
 #define GITHUB_API_URL  "https://api.github.com/repos/alufers/uni-gtw/releases/latest"
 #define GITHUB_RESP_MAX 16384
 
-#define REQUIRE_AUTH(req)                                                       \
-    do {                                                                        \
-        if (!webserver_check_auth(req)) {                                       \
-            httpd_resp_set_hdr(req, "WWW-Authenticate", "X-Auth");             \
-            httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "Unauthorized");  \
-            return ESP_OK;                                                      \
-        }                                                                       \
-    } while (0)
-
 static volatile bool s_ota_in_progress = false;
 
 /* ── WS helpers ─────────────────────────────────────────────────────────── */
@@ -148,10 +139,11 @@ static esp_err_t ota_check_handler(httpd_req_t *req)
         resp.has_html_url = 1;
         resp.html_url = sstr(sstr_cstr(release.html_url));
 
-        /* Find the matching OTA binary for this target */
+        /* Find the matching OTA binary for this target.
+         * Use "-target-" pattern so "esp32" does not match "esp32c3" filenames. */
         for (int i = 0; i < release.assets_len; i++) {
             const char *name = sstr_cstr(release.assets[i].name);
-            if (strstr(name, CONFIG_IDF_TARGET) && strstr(name, ".bin")) {
+            if (strstr(name, "-" CONFIG_IDF_TARGET "-") && strstr(name, ".bin")) {
                 resp.has_asset_url = 1;
                 resp.asset_url = sstr(sstr_cstr(release.assets[i].browser_download_url));
                 break;
