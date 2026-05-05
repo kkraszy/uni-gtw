@@ -6,6 +6,12 @@ export interface InfoResponse {
   web_password_valid?: boolean | null;
   hostname?: string;
   chip?: string;
+  app_version?: string;
+  app_project_name?: string;
+  app_build_time?: string;
+  app_build_date?: string;
+  app_idf_ver?: string;
+  app_elf_sha256?: string;
 }
 
 export type RadioStatus = "ok" | "error" | "not_configured";

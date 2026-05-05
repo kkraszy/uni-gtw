@@ -14,6 +14,7 @@ import { Button } from "./ui/Button";
 import { Chip, ChipButton } from "./ui/Chip";
 import { rssiToWifiIcon } from "./icons";
 import { StatusPayload, RadioStatus, MqttStatus } from "./wsTypes";
+import { Logo } from "./Logo";
 
 function formatUptime(seconds: number): string {
   const d = Math.floor(seconds / 86400);
@@ -128,6 +129,7 @@ export function TopBar({
     <div class="border-b border-zinc-800 shrink-0">
       {/* ── Desktop row (md+) ── always visible, hidden on mobile ────────── */}
       <div class="hidden md:flex items-center px-3 py-2.5 gap-2">
+        <Logo size={22} class="shrink-0" />
         <span class="font-bold tracking-wide text-sm">{hostname || "uni-gtw"}</span>
         {chip && (
           <span class="text-xs text-zinc-500 font-mono border border-zinc-700 rounded px-1 leading-5">
@@ -228,6 +230,7 @@ export function TopBar({
         onClick={() => setMobileExpanded((v) => !v)}
         aria-expanded={mobileExpanded}
       >
+        <Logo size={20} class="shrink-0" />
         <span class="flex-1 font-bold tracking-wide text-sm text-zinc-100">
           {hostname || "uni-gtw"}
         </span>

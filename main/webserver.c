@@ -14,6 +14,7 @@
 #include <time.h>
 
 #include "cosmo/cosmo.h"
+#include "esp_app_desc.h"
 #include "esp_system.h"
 #include "esp_http_server.h"
 #include "esp_log.h"
@@ -811,6 +812,16 @@ static esp_err_t info_get_handler(httpd_req_t *req)
             utils_crypto_verify_password(pw, sstr_cstr(g_config.web_password));
     }
     config_unlock();
+
+    const esp_app_desc_t *app_desc = esp_app_get_description();
+    info.app_version      = sstr_ref(app_desc->version,      strlen(app_desc->version));
+    info.app_project_name = sstr_ref(app_desc->project_name, strlen(app_desc->project_name));
+    info.app_build_time   = sstr_ref(app_desc->time,         strlen(app_desc->time));
+    info.app_build_date   = sstr_ref(app_desc->date,         strlen(app_desc->date));
+    info.app_idf_ver      = sstr_ref(app_desc->idf_ver,      strlen(app_desc->idf_ver));
+    char sha256_hex[65];
+    esp_app_get_elf_sha256(sha256_hex, sizeof(sha256_hex));
+    info.app_elf_sha256   = sstr_ref(sha256_hex, strlen(sha256_hex));
 
     sstr_t json = sstr_new();
     json_marshal_web_info_t(&info, json);

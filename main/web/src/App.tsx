@@ -5,6 +5,7 @@ import { AuthGuard } from "./AuthGuard";
 import { Console } from "./Console";
 import { Channels } from "./Channels";
 import { Channel } from "./channelTypes";
+import { About } from "./About";
 import { Settings } from "./Settings";
 import { Tabs } from "./ui/Tabs";
 import { TopBar } from "./TopBar";
@@ -22,6 +23,7 @@ import {
 const TABS = [
   { id: "control", label: "Control" },
   { id: "settings", label: "Settings" },
+  { id: "about", label: "About" },
 ];
 
 export function App() {
@@ -169,8 +171,10 @@ function AppInner() {
               onGoToSettings={goToSettings}
               lastPacketRx={lastPacketRx}
             />
-          ) : (
+          ) : activeTab === "settings" ? (
             <Settings />
+          ) : (
+            <About />
           )}
         </div>
 

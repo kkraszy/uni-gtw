@@ -55,6 +55,7 @@ idf_component_register(
         mqtt
         mbedtls
         esp_driver_usb_serial_jtag
+        esp_app_format
     EMBED_FILES
         ${WEB_DIST_DIR}/index.html
         ${WEB_DIST_DIR}/app.js

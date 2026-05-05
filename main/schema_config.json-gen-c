@@ -85,6 +85,12 @@ struct web_info_t {
     nullable bool web_password_valid;  // present only when X-Auth header was supplied
     sstr_t hostname;
     sstr_t chip;
+    sstr_t app_version;
+    sstr_t app_project_name;
+    sstr_t app_build_time;
+    sstr_t app_build_date;
+    sstr_t app_idf_ver;
+    sstr_t app_elf_sha256;
 }
 
 // ── Config sub-structs ────────────────────────────────────────────────────────
