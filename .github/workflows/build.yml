@@ -1,11 +1,6 @@
 name: Build Firmware
 
-on:
-  push:
-    branches: [master]
-    tags: ["v*"]
-  pull_request:
-    branches: [master]
+on: push
 
 jobs:
   typecheck:
