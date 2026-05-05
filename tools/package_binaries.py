@@ -14,12 +14,28 @@ project_description.json:
     with internal file references updated to the new flat names
   - Copies flash_args renamed to flash_args-<target> with paths updated
   - Copies the app ELF renamed to <name>-<target>-<version>.elf
+  - Writes esp_web_tools_manifest.json for ESP Web Tools flashing UI
+  - Writes app_binaries.txt listing only the app (OTA-flashable) .bin files
 """
 
 import json
 import shutil
 import sys
 from pathlib import Path
+
+TARGET_TO_CHIP_FAMILY: dict[str, str] = {
+    "esp32": "ESP32",
+    "esp32s2": "ESP32-S2",
+    "esp32s3": "ESP32-S3",
+    "esp32c2": "ESP32-C2",
+    "esp32c3": "ESP32-C3",
+    "esp32c5": "ESP32-C5",
+    "esp32c6": "ESP32-C6",
+    "esp32c61": "ESP32-C61",
+    "esp32h2": "ESP32-H2",
+    "esp32p4": "ESP32-P4",
+    "esp8266": "ESP8266",
+}
 
 
 def find_build_dirs(build_root: Path) -> list[Path]:
@@ -35,7 +51,8 @@ def flat_name(original: str) -> str:
     return Path(original).name
 
 
-def process_target(build_dir: Path, out_dir: Path) -> None:
+def process_target(build_dir: Path, out_dir: Path) -> dict:
+    """Package one target's binaries and return manifest build entry + metadata."""
     with open(build_dir / "project_description.json") as f:
         desc = json.load(f)
     with open(build_dir / "flasher_args.json") as f:
@@ -111,7 +128,25 @@ def process_target(build_dir: Path, out_dir: Path) -> None:
         else:
             print(f"  WARNING: ELF {elf_src} not found", file=sys.stderr)
 
+    # --- identify the app (OTA-flashable) binary ---
+    app_entry = flasher.get("app", {})
+    app_orig_file = app_entry.get("file", "") if isinstance(app_entry, dict) else ""
+    app_binary = rename_map.get(app_orig_file, flat_name(app_orig_file)) if app_orig_file else ""
+
+    # --- build the ESP Web Tools manifest entry ---
+    chip_family = TARGET_TO_CHIP_FAMILY.get(target.lower(), target.upper())
+    parts = sorted(
+        [
+            {"path": rename_map.get(rel_path, flat_name(rel_path)), "offset": int(offset_hex, 0)}
+            for offset_hex, rel_path in flash_files.items()
+        ],
+        key=lambda p: p["offset"],
+    )
+    build_entry = {"chipFamily": chip_family, "parts": parts}
+
     print(f"  Packaged {target} v{version} -> {out_dir}")
+
+    return {"version": version, "build_entry": build_entry, "app_binary": app_binary}
 
 
 def main() -> None:
@@ -128,9 +163,25 @@ def main() -> None:
         print("No build directories with flasher_args.json found.", file=sys.stderr)
         sys.exit(1)
 
+    results = []
     for bd in build_dirs:
         print(f"Processing {bd.name}...")
-        process_target(bd, out_dir)
+        results.append(process_target(bd, out_dir))
+
+    # --- write esp_web_tools_manifest.json ---
+    version = results[0]["version"]
+    manifest = {
+        "name": "uni-gtw",
+        "version": version,
+        "new_install_prompt_erase": False,
+        "builds": [r["build_entry"] for r in results],
+    }
+    with open(out_dir / "esp_web_tools_manifest.json", "w") as f:
+        json.dump(manifest, f, indent=4)
+
+    # --- write app_binaries.txt (one OTA-flashable .bin per line) ---
+    app_bins = [r["app_binary"] for r in results if r["app_binary"]]
+    (out_dir / "app_binaries.txt").write_text("\n".join(app_bins) + "\n")
 
     print("Done.")
 

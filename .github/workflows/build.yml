@@ -3,6 +3,7 @@ name: Build Firmware
 on:
   push:
     branches: [master]
+    tags: ["v*"]
   pull_request:
     branches: [master]
 
@@ -75,3 +76,70 @@ jobs:
         with:
           name: uni-gtw-binaries-${{ steps.build-info.outputs.target }}-${{ steps.build-info.outputs.version }}
           path: build/packaged-binaries/
+
+  combine:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all binary artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: uni-gtw-binaries-*
+          path: downloaded-artifacts/
+
+      - name: List downloaded artifacts
+        run: find downloaded-artifacts -mindepth 1 -maxdepth 2 | sort
+
+      - name: Merge packaged binaries
+        run: |
+          python3 tools/merge_packaged_binaries.py \
+            downloaded-artifacts/*/ \
+            -o combined-binaries/
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(python3 -c "import json; m=json.load(open('combined-binaries/esp_web_tools_manifest.json')); print(m['version'])")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Upload combined artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: uni-gtw-combined-${{ steps.version.outputs.version }}
+          path: combined-binaries/
+
+      - name: Create release zip
+        if: github.ref_type == 'tag'
+        run: |
+          cd combined-binaries
+          zip -r ../uni-gtw-${{ github.ref_name }}.zip .
+
+      - name: Attach files to release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Create release if it does not exist yet
+          gh release create ${{ github.ref_name }} \
+            --title "${{ github.ref_name }}" \
+            --generate-notes \
+            || true
+
+          # Attach the full zip
+          gh release upload ${{ github.ref_name }} \
+            uni-gtw-${{ github.ref_name }}.zip \
+            --clobber
+
+          # Attach individual app (OTA-flashable) binaries listed in app_binaries.txt
+          while IFS= read -r bin; do
+            [ -z "$bin" ] && continue
+            gh release upload ${{ github.ref_name }} \
+              "combined-binaries/$bin" \
+              --clobber
+          done < combined-binaries/app_binaries.txt
