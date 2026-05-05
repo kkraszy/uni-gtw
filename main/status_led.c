@@ -58,7 +58,9 @@ static void led_fade(uint32_t duty, int ms)
      * fade ISR keeps overriding the duty register until explicitly stopped;
      * calling ledc_fade_stop() here is safe even when no fade is running
      * (it just returns ESP_ERR_INVALID_STATE which we ignore). */
+#if SOC_LEDC_SUPPORT_FADE_STOP
     ledc_fade_stop(LEDC_MODE_SEL, LEDC_CH);
+#endif
     ledc_set_fade_time_and_start(LEDC_MODE_SEL, LEDC_CH, duty, ms, LEDC_FADE_NO_WAIT);
 }
 
@@ -66,7 +68,9 @@ static void led_set(uint32_t duty)
 {
     /* Must stop the fade ISR before a direct duty write or the ISR will
      * immediately overwrite the value on its next tick. */
+#if SOC_LEDC_SUPPORT_FADE_STOP
     ledc_fade_stop(LEDC_MODE_SEL, LEDC_CH);
+#endif
     ledc_set_duty(LEDC_MODE_SEL, LEDC_CH, duty);
     ledc_update_duty(LEDC_MODE_SEL, LEDC_CH);
 }

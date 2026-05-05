@@ -514,11 +514,16 @@ static void usb_shell_task(void *arg) {
   repl_config.prompt = PROMPT_STR ">";
   repl_config.max_cmdline_length = 256;
 
+  #ifdef CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG
   esp_console_dev_usb_serial_jtag_config_t hw_config =
       ESP_CONSOLE_DEV_USB_SERIAL_JTAG_CONFIG_DEFAULT();
 
   ESP_ERROR_CHECK(
       esp_console_new_repl_usb_serial_jtag(&hw_config, &repl_config, &repl));
+  #else
+    esp_console_dev_uart_config_t hw_config = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_console_new_repl_uart(&hw_config, &repl_config, &repl));
+  #endif
 
   register_reboot();
   register_wifi_connect();

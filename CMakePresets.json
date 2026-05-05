@@ -1,0 +1,38 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "default",
+      "binaryDir": "build/esp32c3",
+      "displayName": "ESP32-C3 build",
+      "description": "uni-gtw build for ESP32-C3",
+      "cacheVariables": {
+        "SDKCONFIG_DEFAULTS": "sdkconfig.defaults",
+        "SDKCONFIG": "./build/esp32c3/sdkconfig",
+        "IDF_TARGET": "esp32c3"
+      }
+    },
+    {
+      "name": "esp32",
+      "binaryDir": "build/esp32",
+      "displayName": "ESP32 build",
+      "description": "uni-gtw build for ESP32",
+      "cacheVariables": {
+        "SDKCONFIG_DEFAULTS": "sdkconfig.defaults",
+        "SDKCONFIG": "./build/esp32/sdkconfig",
+        "IDF_TARGET": "esp32"
+      }
+    },
+    {
+      "name": "esp32s3",
+      "binaryDir": "build/esp32s3",
+      "displayName": "ESP32-S3 build",
+      "description": "uni-gtw build for ESP32-S3",
+      "cacheVariables": {
+        "SDKCONFIG_DEFAULTS": "sdkconfig.defaults",
+        "SDKCONFIG": "./build/esp32s3/sdkconfig",
+        "IDF_TARGET": "esp32s3"
+      }
+    }
+  ]
+}
