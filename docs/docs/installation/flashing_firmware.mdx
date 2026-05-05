@@ -3,3 +3,15 @@ sidebar_position: 2
 ---
 
 # Flashing firmware
+
+## Web flasher
+
+If your browser supports WebUSB (desktop Google Chrome, Microsoft Edge, recent versions of Brave) you can use the web flasher provided below to install the firmware.
+
+import "esp-web-tools";
+
+Connect your board to this PC via USB and click the button below to begin flashing the firmware. You will be prompted to choose an appropriate serial port.
+
+<esp-web-install-button
+  manifest="https://firmware.esphome.io/esp-web-tools/manifest.json"
+></esp-web-install-button>

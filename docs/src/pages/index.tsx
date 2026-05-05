@@ -12,8 +12,8 @@ export default function Home(): ReactNode {
   const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />"
+      title={`Homepage`}
+      description="Documentation for the uni-gtw project, which is an ESP32-based gateway compatible with Mobilus COSMO devices."
     >
       <main></main>
     </Layout>
