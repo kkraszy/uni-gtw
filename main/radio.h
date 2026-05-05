@@ -53,3 +53,12 @@ esp_err_t radio_deinit(void);
  * @return ESP_OK on success, ESP_ERR_TIMEOUT if the queue is full.
  */
 esp_err_t radio_request_tx(const cosmo_packet_t *pkt);
+
+/**
+ * @brief Recompute and apply the channel hopping mode based on the current
+ *        channel list (1-way only → ch0, 2-way only → ch1, both → hopping).
+ *
+ * Call after any channel_create() or channel_delete().  Safe to call from
+ * any task.  No-op if the radio is not initialised.
+ */
+void radio_update_channel_hopping_mode(void);

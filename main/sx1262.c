@@ -8,10 +8,14 @@
 #include "driver/spi_master.h"
 #include "esp_log.h"
 #include "esp_rom_sys.h"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 #include "freertos/task.h"
 
 static const char *TAG = "sx1262";
+
+#define CHANNEL_HOPPING_INTERVAL_MS 333
 
 /* ── Runtime state ───────────────────────────────────────────────────────── */
 
@@ -19,6 +23,12 @@ static spi_device_handle_t s_spi;
 static int s_csn_gpio;
 static int s_busy_gpio;
 static int s_rst_gpio;
+
+static radio_channel_hopping_mode_t s_hopping_mode = RADIO_HOP_CHANNEL_0;
+static uint8_t              s_hop_ch    = 0;    /* RX channel in use          */
+static bool                 s_in_tx     = false; /* true during TX sequence    */
+static SemaphoreHandle_t    s_spi_mutex = NULL;
+static esp_timer_handle_t   s_hop_timer = NULL;
 
 /* ── SX1262 opcode constants ─────────────────────────────────────────────── */
 
@@ -156,6 +166,11 @@ static void sx1262_set_freq(uint32_t freq_reg) {
 
 static esp_err_t sx1262_ops_init(const radio_hw_cfg_t *hw,
                                  spi_host_device_t host) {
+  s_spi_mutex = xSemaphoreCreateMutex();
+  s_hop_ch    = 0;
+  s_in_tx     = false;
+  s_hopping_mode = RADIO_HOP_CHANNEL_0;
+
   s_csn_gpio = hw->gpio_csn;
   s_busy_gpio = hw->gpio_busy;
   s_rst_gpio = hw->gpio_rst;
@@ -330,13 +345,14 @@ static esp_err_t sx1262_ops_init(const radio_hw_cfg_t *hw,
     sx1262_write_reg(0x06C0, sw, 8);
   }
 
-  /* ── 14. SetDioIrqParams: RX_DONE (bit 1) on DIO1, nothing else ── */
+  /* ── 14. SetDioIrqParams: RX_DONE on DIO1; SyncWordValid latched globally
+   *        so the timer callback can poll it to detect mid-packet hops.    */
   {
     uint8_t p[8] = {
-        0x00, 0x02, /* GlobalIrqMask: RX_DONE                          */
-        0x00, 0x02, /* DIO1IrqMask:   RX_DONE                          */
-        0x00, 0x00, /* DIO2IrqMask:   none                              */
-        0x00, 0x00, /* DIO3IrqMask:   none                              */
+        0x00, 0x0A, /* GlobalIrqMask: RX_DONE (bit1) | SyncWordValid (bit3) */
+        0x00, 0x02, /* DIO1IrqMask:   RX_DONE only                          */
+        0x00, 0x00, /* DIO2IrqMask:   none                                   */
+        0x00, 0x00, /* DIO3IrqMask:   none                                   */
     };
     sx1262_cmd(SX_SET_DIO_IRQ_PARAMS, p, 8);
   }
@@ -361,6 +377,11 @@ static esp_err_t sx1262_ops_init(const radio_hw_cfg_t *hw,
 static void sx1262_ops_deinit(void) {
   if (!s_spi)
     return;
+  if (s_hop_timer) {
+    esp_timer_stop(s_hop_timer);
+    esp_timer_delete(s_hop_timer);
+    s_hop_timer = NULL;
+  }
   /* Put chip in standby */
   uint8_t p = SX_STDBY_RC;
   sx1262_cmd(SX_SET_STANDBY, &p, 1);
@@ -371,31 +392,42 @@ static void sx1262_ops_deinit(void) {
   if (s_busy_gpio >= 0)
     gpio_reset_pin(s_busy_gpio);
   gpio_reset_pin(s_csn_gpio);
+  if (s_spi_mutex) {
+    vSemaphoreDelete(s_spi_mutex);
+    s_spi_mutex = NULL;
+  }
 }
 
 static void sx1262_ops_enter_idle(void) {
+  xSemaphoreTake(s_spi_mutex, portMAX_DELAY);
+  s_in_tx = true;
   uint8_t p = SX_STDBY_RC;
   sx1262_cmd(SX_SET_STANDBY, &p, 1);
+  xSemaphoreGive(s_spi_mutex);
 }
 
 static void sx1262_ops_enter_rx(void) {
-    ESP_LOGI(TAG, "enter_rx");
- sx1262_set_freq(sx1262_channel_freq[0]);
-  uint8_t p[2] = {0xFF, 0xFF}; /* use 3-byte timeout 0xFFFFFF */
+  xSemaphoreTake(s_spi_mutex, portMAX_DELAY);
+  s_in_tx = false;
+  sx1262_set_freq(sx1262_channel_freq[s_hop_ch]);
   uint8_t pp[3] = {0xFF, 0xFF, 0xFF};
-  (void)p;
   sx1262_cmd(SX_SET_RX, pp, 3);
+  xSemaphoreGive(s_spi_mutex);
 }
 
 static void sx1262_ops_set_channel(uint8_t ch) {
-  if (ch < 2)
-    sx1262_set_freq(sx1262_channel_freq[ch]);
+  if (ch >= 2) return;
+  xSemaphoreTake(s_spi_mutex, portMAX_DELAY);
+  sx1262_set_freq(sx1262_channel_freq[ch]);
+  xSemaphoreGive(s_spi_mutex);
 }
 
 static esp_err_t sx1262_ops_handle_rx_irq(uint8_t *buf, uint8_t len,
                                           int8_t *rssi_dbm,
                                           int16_t *freq_off_khz) {
   ESP_LOGI(TAG, "RX IRQ");
+  xSemaphoreTake(s_spi_mutex, portMAX_DELAY);
+
   /* Read and clear IRQ status */
   uint8_t irq_buf[3];
   sx1262_read(SX_GET_IRQ_STATUS, irq_buf, 3);
@@ -411,6 +443,7 @@ static esp_err_t sx1262_ops_handle_rx_irq(uint8_t *buf, uint8_t len,
     ESP_LOGW(TAG, "RX IRQ: spurious or timeout, irq=%04X", irq);
     uint8_t p[3] = {0xFF, 0xFF, 0xFF};
     sx1262_cmd(SX_SET_RX, p, 3);
+    xSemaphoreGive(s_spi_mutex);
     return ESP_FAIL;
   }
 
@@ -425,6 +458,7 @@ static esp_err_t sx1262_ops_handle_rx_irq(uint8_t *buf, uint8_t len,
     ESP_LOGW(TAG, "RX payload too short: %u < %u", payload_len, len);
     uint8_t p[3] = {0xFF, 0xFF, 0xFF};
     sx1262_cmd(SX_SET_RX, p, 3);
+    xSemaphoreGive(s_spi_mutex);
     return ESP_FAIL;
   }
 
@@ -439,16 +473,19 @@ static esp_err_t sx1262_ops_handle_rx_irq(uint8_t *buf, uint8_t len,
   *rssi_dbm = -(int8_t)(pkt_status[2] / 2);
   *freq_off_khz = 0; /* SX1262 FSK does not expose freq offset easily     */
 
-  /* Re-enter continuous RX */
+  /* Re-enter continuous RX on the same channel we were listening on */
   {
     uint8_t p[3] = {0xFF, 0xFF, 0xFF};
     sx1262_cmd(SX_SET_RX, p, 3);
   }
 
+  xSemaphoreGive(s_spi_mutex);
   return ESP_OK;
 }
 
 static esp_err_t sx1262_ops_transmit(const uint8_t *data, uint8_t len) {
+  xSemaphoreTake(s_spi_mutex, portMAX_DELAY);
+
   /* Put chip in standby with XOSC running for fast TX */
   uint8_t stdby = SX_STDBY_XOSC;
   sx1262_cmd(SX_SET_STANDBY, &stdby, 1);
@@ -475,7 +512,72 @@ static esp_err_t sx1262_ops_transmit(const uint8_t *data, uint8_t len) {
     sx1262_cmd(SX_CLEAR_IRQ_STATUS, clr, 2);
   }
 
+  xSemaphoreGive(s_spi_mutex);
   return ESP_OK;
+}
+
+/* ── Channel hopping timer ───────────────────────────────────────────────── */
+
+static void sx1262_hop_timer_cb(void *arg) {
+  uint64_t next_us = CHANNEL_HOPPING_INTERVAL_MS * 1000ULL;
+
+  xSemaphoreTake(s_spi_mutex, portMAX_DELAY);
+  if (!s_in_tx && s_hopping_mode == RADIO_HOP_ENABLED) {
+    /* Poll IRQ status to detect mid-packet reception.  SyncWordValid (bit 3)
+     * is set once the sync word is matched; RX_DONE (bit 1) is not yet set
+     * while the payload is still being clocked in (~30 ms remaining).       */
+    uint8_t irq_buf[3];
+    sx1262_read(SX_GET_IRQ_STATUS, irq_buf, 3);
+    uint16_t irq = ((uint16_t)irq_buf[1] << 8) | irq_buf[2];
+
+    if ((irq & 0x0008) && !(irq & 0x0002)) {
+      /* Payload in flight — defer hop by one payload duration + margin */
+      next_us = 35000;
+    } else {
+      s_hop_ch ^= 1;
+      uint8_t stdby = SX_STDBY_XOSC;
+      sx1262_cmd(SX_SET_STANDBY, &stdby, 1);
+      sx1262_set_freq(sx1262_channel_freq[s_hop_ch]);
+      uint8_t pp[3] = {0xFF, 0xFF, 0xFF};
+      sx1262_cmd(SX_SET_RX, pp, 3);
+    }
+  }
+  xSemaphoreGive(s_spi_mutex);
+  /* Restart as one-shot to avoid queued fires accumulating during long TX */
+  if (s_hop_timer)
+    esp_timer_start_once(s_hop_timer, next_us);
+}
+
+static void sx1262_ops_set_channel_hopping_mode(radio_channel_hopping_mode_t mode) {
+  /* Create timer on first use (before taking mutex — no SPI involved) */
+  if (!s_hop_timer) {
+    esp_timer_create_args_t args = {
+        .callback = sx1262_hop_timer_cb,
+        .name     = "sx1262_hop",
+    };
+    esp_timer_create(&args, &s_hop_timer);
+  }
+
+  if (mode != RADIO_HOP_ENABLED && s_hop_timer)
+    esp_timer_stop(s_hop_timer);
+
+  xSemaphoreTake(s_spi_mutex, portMAX_DELAY);
+  s_hopping_mode = mode;
+  s_hop_ch = (mode == RADIO_HOP_CHANNEL_1) ? 1 : 0;
+
+  /* Immediately tune to the correct channel while not transmitting so the
+   * chip isn't left on the wrong frequency after hopping is disabled.      */
+  if (!s_in_tx) {
+    uint8_t stdby = SX_STDBY_XOSC;
+    sx1262_cmd(SX_SET_STANDBY, &stdby, 1);
+    sx1262_set_freq(sx1262_channel_freq[s_hop_ch]);
+    uint8_t pp[3] = {0xFF, 0xFF, 0xFF};
+    sx1262_cmd(SX_SET_RX, pp, 3);
+  }
+  xSemaphoreGive(s_spi_mutex);
+
+  if (mode == RADIO_HOP_ENABLED)
+    esp_timer_start_once(s_hop_timer, CHANNEL_HOPPING_INTERVAL_MS * 1000ULL);
 }
 
 static const radio_ops_t sx1262_ops = {
@@ -484,9 +586,10 @@ static const radio_ops_t sx1262_ops = {
     .enter_idle = sx1262_ops_enter_idle,
     .enter_rx = sx1262_ops_enter_rx,
     .set_channel = sx1262_ops_set_channel,
-    .handle_rx_irq = sx1262_ops_handle_rx_irq,
-    .transmit = sx1262_ops_transmit,
-    .irq_edge = GPIO_INTR_POSEDGE,
+    .handle_rx_irq            = sx1262_ops_handle_rx_irq,
+    .transmit                 = sx1262_ops_transmit,
+    .set_channel_hopping_mode = sx1262_ops_set_channel_hopping_mode,
+    .irq_edge                 = GPIO_INTR_POSEDGE,
 };
 
 const radio_ops_t *sx1262_get_ops(void) { return &sx1262_ops; }

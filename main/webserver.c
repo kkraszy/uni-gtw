@@ -1,6 +1,7 @@
 #include "webserver.h"
 #include "background_worker.h"
 #include "channel.h"
+#include "radio.h"
 #include "config.h"
 #include "mqtt.h"
 #include "status_led.h"
@@ -357,11 +358,13 @@ static void ws_dispatch(int fd, const char *text)
             m->has_mqtt_name ? sstr_cstr(m->mqtt_name) : NULL,
             m->has_mqtt_name
         );
+        radio_update_channel_hopping_mode();
         break;
     }
 
     case ws_client_message_t_delete_channel:
         channel_delete(msg.value.delete_channel.serial);
+        radio_update_channel_hopping_mode();
         break;
 
     case ws_client_message_t_channel_cmd: {

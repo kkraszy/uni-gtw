@@ -36,7 +36,6 @@ typedef struct {
 } radio_evt_t;
 
 #define RADIO_QUEUE_DEPTH 8
-#define RADIO_RX_CHANNEL  0
 
 static QueueHandle_t     s_radio_queue       = NULL;
 static TaskHandle_t      s_radio_task_handle = NULL;
@@ -149,7 +148,6 @@ static void radio_do_tx(const cosmo_packet_t *pkt)
         s_ops->transmit(raw.data, COSMO_RAW_PACKET_LEN);
     }
 
-    s_ops->set_channel(RADIO_RX_CHANNEL);
     s_ops->enter_rx();
 
     char pkt_str[128];
@@ -291,7 +289,29 @@ static esp_err_t radio_do_init(const radio_hw_cfg_t *hw)
     s_initialized   = true;
     s_radio_state   = RADIO_STATE_OK;
     ESP_LOGI(TAG, "Radio initialised, entering RX");
+    radio_update_channel_hopping_mode();
     return ESP_OK;
+}
+
+/* ── Channel hopping mode ────────────────────────────────────────────────── */
+
+void radio_update_channel_hopping_mode(void)
+{
+    if (!s_initialized || !s_ops) return;
+    bool has_1way = false, has_2way = false;
+    config_lock();
+    for (int i = 0; i < g_config.channels_len; i++) {
+        if (sstr_compare_c(g_config.channels[i].proto, "2way") == 0)
+            has_2way = true;
+        else
+            has_1way = true;
+    }
+    config_unlock();
+    radio_channel_hopping_mode_t mode =
+        (has_1way && has_2way) ? RADIO_HOP_ENABLED :
+        has_2way               ? RADIO_HOP_CHANNEL_1 :
+                                 RADIO_HOP_CHANNEL_0; /* also for zero channels */
+    s_ops->set_channel_hopping_mode(mode);
 }
 
 /* ── Public API ──────────────────────────────────────────────────────────── */

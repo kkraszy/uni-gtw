@@ -283,9 +283,15 @@ static void cc1101_ops_enter_idle(void)
 
 static void cc1101_ops_enter_rx(void)
 {
+    cc1101_write_reg(CC1101_CHANNR, 0);
     /* Flush RX FIFO first: safe after consuming a packet or returning from TX */
     cc1101_strobe(CC1101_SFRX);
     cc1101_strobe(CC1101_SRX);
+}
+
+static void cc1101_ops_set_channel_hopping_mode(radio_channel_hopping_mode_t mode)
+{
+    (void)mode; /* CC1101 wide filter covers both channels from channel 0 */
 }
 
 static void cc1101_ops_set_channel(uint8_t ch)
@@ -353,9 +359,10 @@ static const radio_ops_t cc1101_ops = {
     .enter_idle    = cc1101_ops_enter_idle,
     .enter_rx      = cc1101_ops_enter_rx,
     .set_channel   = cc1101_ops_set_channel,
-    .handle_rx_irq = cc1101_ops_handle_rx_irq,
-    .transmit      = cc1101_ops_transmit,
-    .irq_edge      = GPIO_INTR_NEGEDGE,
+    .handle_rx_irq            = cc1101_ops_handle_rx_irq,
+    .transmit                 = cc1101_ops_transmit,
+    .set_channel_hopping_mode = cc1101_ops_set_channel_hopping_mode,
+    .irq_edge                 = GPIO_INTR_NEGEDGE,
 };
 
 const radio_ops_t *cc1101_get_ops(void)

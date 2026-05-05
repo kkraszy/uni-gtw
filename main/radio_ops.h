@@ -6,6 +6,14 @@
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
 
+/* ── Channel hopping mode ────────────────────────────────────────────────── */
+
+typedef enum {
+    RADIO_HOP_CHANNEL_0 = 0, /* listen on channel 0 only (1-way Cosmo) */
+    RADIO_HOP_CHANNEL_1,     /* listen on channel 1 only (2-way Cosmo) */
+    RADIO_HOP_ENABLED,       /* alternate every CHANNEL_HOPPING_INTERVAL_MS  */
+} radio_channel_hopping_mode_t;
+
 /* ── Hardware configuration snapshot ────────────────────────────────────── */
 /* Passed to radio_ops_t::init(); radio.c owns the SPI bus, drivers own only
  * the SPI device (spi_bus_add_device / spi_bus_remove_device).             */
@@ -54,6 +62,10 @@ typedef struct radio_ops_s {
      * enter_idle() and set_channel().  The driver leaves the chip idle
      * (not in RX) after returning.                                       */
     esp_err_t       (*transmit)(const uint8_t *data, uint8_t len);
+
+    /* Update channel hopping mode.  CC1101 ignores this (wide filter covers
+     * both channels).  SX1262 starts/stops an internal timer.              */
+    void            (*set_channel_hopping_mode)(radio_channel_hopping_mode_t mode);
 
     /* Edge for gpio_isr_handler_add on gpio_gdo0 / DIO1 */
     gpio_int_type_t irq_edge;
