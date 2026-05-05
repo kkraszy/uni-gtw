@@ -57,3 +57,21 @@ jobs:
           . /opt/esp/idf/export.sh
           idf.py --version
           idf.py --preset ${{ matrix.preset }} build
+
+      - name: Extract build info
+        id: build-info
+        run: |
+          DESC=$(find build -maxdepth 2 -name project_description.json | grep -v bootloader | head -1)
+          TARGET=$(python3 -c "import json; d=json.load(open('$DESC')); print(d['target'])")
+          VERSION=$(python3 -c "import json; d=json.load(open('$DESC')); print(d['project_version'])")
+          echo "target=$TARGET" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Package binaries
+        run: uv run tools/package_binaries.py
+
+      - name: Upload binaries artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: uni-gtw-binaries-${{ steps.build-info.outputs.target }}-${{ steps.build-info.outputs.version }}
+          path: build/packaged-binaries/
