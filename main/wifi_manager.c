@@ -10,6 +10,8 @@
 #include "esp_log.h"
 #include "esp_netif.h"
 #include "esp_netif_sntp.h"
+#include "esp_ota_ops.h"
+#include "esp_timer.h"
 #include "esp_wifi.h"
 #include "nvs.h"
 #include "nvs_flash.h"
@@ -30,6 +32,14 @@ static EventGroupHandle_t       s_scan_eg;
 /* Both netifs created upfront to avoid dynamic creation during APSTA transitions */
 static esp_netif_t *s_sta_netif = NULL;
 static esp_netif_t *s_ap_netif  = NULL;
+
+/* ── OTA rollback timer ───────────────────────────────────────────────────── */
+
+static void ota_rollback_mark_valid_cb(void *arg)
+{
+    esp_ota_mark_app_valid_cancel_rollback();
+    ESP_LOGI(TAG, "OTA rollback window closed — firmware marked valid");
+}
 
 /* ── NVS helpers ──────────────────────────────────────────────────────────── */
 
@@ -183,6 +193,17 @@ static void event_handler(void *arg, esp_event_base_t event_base,
         esp_sntp_config_t sntp_cfg = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
         esp_netif_sntp_init(&sntp_cfg);
         ESP_LOGI(TAG, "SNTP initialized");
+
+        /* Mark OTA firmware valid 45 s after receiving IP, cancelling rollback. */
+        static esp_timer_handle_t s_ota_rollback_timer;
+        if (!s_ota_rollback_timer) {
+            esp_timer_create_args_t args = {
+                .callback = ota_rollback_mark_valid_cb,
+                .name     = "ota_rollback",
+            };
+            esp_timer_create(&args, &s_ota_rollback_timer);
+        }
+        esp_timer_start_once(s_ota_rollback_timer, 45ULL * 1000000);
     }
 }
 

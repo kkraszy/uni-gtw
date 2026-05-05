@@ -64,6 +64,8 @@ static bool check_auth(httpd_req_t *req)
     return ok;
 }
 
+bool webserver_check_auth(httpd_req_t *req) { return check_auth(req); }
+
 #define REQUIRE_AUTH(req)                                                     \
     do {                                                                      \
         if (!check_auth(req)) {                                               \
@@ -834,6 +836,8 @@ static esp_err_t info_get_handler(httpd_req_t *req)
 }
 
 /* ── Early init ──────────────────────────────────────────────────────────── */
+
+httpd_handle_t webserver_get_handle(void) { return s_server; }
 
 void webserver_early_init(void)
 {

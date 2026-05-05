@@ -45,6 +45,7 @@ idf_component_register(
         "status_led.c"
         "utils.c"
         "console.c"
+        "ota.c"
     INCLUDE_DIRS "."
     REQUIRES
         esp_wifi
@@ -66,6 +67,9 @@ idf_component_register(
         mbedtls
         esp_driver_usb_serial_jtag
         esp_app_format
+        esp_https_ota
+        esp_http_client
+        app_update
     EMBED_FILES
         ${WEB_DIST_DIR}/index.html
         ${WEB_DIST_DIR}/app.js
@@ -138,6 +142,7 @@ if(NOT CMAKE_BUILD_EARLY_EXPANSION)
         "${CMAKE_CURRENT_SOURCE_DIR}/schema_config.json-gen-c"
         "${CMAKE_CURRENT_SOURCE_DIR}/schema_ws_messages.json-gen-c"
         "${CMAKE_CURRENT_SOURCE_DIR}/schema_mqtt_messages.json-gen-c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/schema_github_api.json-gen-c"
     )
 
   add_custom_command(

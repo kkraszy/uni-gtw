@@ -9,6 +9,9 @@ extern int g_mqtt_status; /* enum mqtt_status_t values */
 /* Called once from app_main after channel_init(). */
 void mqtt_init(void);
 
+/* Stop the MQTT client and free its resources. Safe to call from any task. */
+void mqtt_stop(void);
+
 /* Called from webserver apply_settings to react to config changes at runtime.
  * Safe to call from any task (NOT from an MQTT event handler). */
 void mqtt_apply_config(void);

@@ -7,6 +7,7 @@ import { Channels } from "./Channels";
 import { Channel } from "./channelTypes";
 import { About } from "./About";
 import { Settings } from "./Settings";
+import { Ota } from "./Ota";
 import { Tabs } from "./ui/Tabs";
 import { TopBar } from "./TopBar";
 import { useJsonWebsocket, ReadyState } from "./useWebsocket";
@@ -18,11 +19,13 @@ import {
   RadioStatus,
   MqttStatus,
   PacketInfo,
+  OtaProgressPayload,
 } from "./wsTypes";
 
 const TABS = [
   { id: "control", label: "Control" },
   { id: "settings", label: "Settings" },
+  { id: "ota", label: "OTA" },
   { id: "about", label: "About" },
 ];
 
@@ -45,6 +48,7 @@ function AppInner() {
   const [showConsole, setShowConsole] = useState(false);
   const [radioFlash, setRadioFlash] = useState(false);
   const [lastPacketRx, setLastPacketRx] = useState<PacketInfo | null>(null);
+  const [otaProgress, setOtaProgress] = useState<OtaProgressPayload | null>(null);
   const wifiDismissedRef = useRef(false);
   const lastStatusTimeRef = useRef<number>(0);
   const radioFlashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -94,6 +98,8 @@ function AppInner() {
       if (lastJsonMessage.cmd === "packet_rx") {
         setLastPacketRx(lastJsonMessage.payload);
       }
+    } else if (lastJsonMessage.cmd === "ota_progress") {
+      setOtaProgress(lastJsonMessage.payload);
     }
   }, [lastJsonMessage]);
 
@@ -173,6 +179,8 @@ function AppInner() {
             />
           ) : activeTab === "settings" ? (
             <Settings />
+          ) : activeTab === "ota" ? (
+            <Ota otaProgress={otaProgress} />
           ) : (
             <About />
           )}

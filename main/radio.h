@@ -35,6 +35,14 @@ esp_err_t radio_apply_config(void);
 radio_state_t radio_get_state(void);
 
 /**
+ * @brief Gracefully shut down the radio subsystem.
+ *
+ * Signals the radio task to stop, waits up to 5 s for acknowledgement, then
+ * deletes the task and queue.  Call before OTA to free memory.
+ */
+esp_err_t radio_deinit(void);
+
+/**
  * @brief Queue a packet for transmission.
  *
  * The radio task will idle the chip, transmit the packet (pkt->repeat + 1)

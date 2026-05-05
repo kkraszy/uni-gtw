@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "cosmo/cosmo.h"
+#include "esp_http_server.h"
 
 void webserver_early_init(void);
 void webserver_start(void);
@@ -10,6 +11,12 @@ void webserver_start_status_timer(void);
 void gtw_console_log(const char *fmt, ...);
 void webserver_ws_broadcast_json(const char *json);
 void webserver_ws_send_json_to_fd(int fd, const char *json);
+
+/* Returns the running httpd handle (NULL before webserver_start). */
+httpd_handle_t webserver_get_handle(void);
+
+/* Returns true if the request passes the password check (always true if auth is disabled). */
+bool webserver_check_auth(httpd_req_t *req);
 
 /**
  * Broadcast a packet_rx or packet_tx WebSocket message to all clients.

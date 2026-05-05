@@ -43,6 +43,12 @@ export interface PacketInfo {
   extra_payload?: number;
 }
 
+export interface OtaProgressPayload {
+  status: "starting" | "downloading" | "done" | "error";
+  progress: number | null;
+  error: string | null;
+}
+
 export type WsMessage =
   | { cmd: "console"; payload: string }
   | { cmd: "channels"; payload: Channel[] }
@@ -51,4 +57,5 @@ export type WsMessage =
   | { cmd: "status"; payload: StatusPayload }
   | { cmd: "wifi_scan_result"; payload: ScanEntry[] }
   | { cmd: "packet_rx"; payload: PacketInfo }
-  | { cmd: "packet_tx"; payload: PacketInfo };
+  | { cmd: "packet_tx"; payload: PacketInfo }
+  | { cmd: "ota_progress"; payload: OtaProgressPayload };

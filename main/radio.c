@@ -313,6 +313,12 @@ esp_err_t radio_apply_config(void)
     return radio_do_init(&desired);
 }
 
+esp_err_t radio_deinit(void)
+{
+    radio_do_deinit();
+    return ESP_OK;
+}
+
 esp_err_t radio_request_tx(const cosmo_packet_t *pkt)
 {
     if (!s_initialized || !s_radio_queue) return ESP_ERR_INVALID_STATE;

@@ -602,6 +602,13 @@ void mqtt_init(void)
     mqtt_do_init(&cfg);
 }
 
+void mqtt_stop(void)
+{
+    xSemaphoreTake(s_mutex, portMAX_DELAY);
+    mqtt_do_deinit();
+    xSemaphoreGive(s_mutex);
+}
+
 void mqtt_apply_config(void)
 {
     mqtt_active_cfg_t cfg = {0};

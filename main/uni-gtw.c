@@ -12,6 +12,7 @@
 #include "console.h"
 #include "esp_littlefs.h"
 #include "mqtt.h"
+#include "ota.h"
 #include "radio.h"
 #include "status_led.h"
 #include "webserver.h"
@@ -65,6 +66,7 @@ void app_main(void)
     webserver_early_init();
     channel_init();
     webserver_start();
+    ota_init();
 
     /* Start WiFi — netifs are created here */
     wifi_manager_init();

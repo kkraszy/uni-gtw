@@ -65,6 +65,16 @@ struct ws_packet_tx_msg_t {
     ws_packet_info_t payload;
 }
 
+struct ws_ota_progress_payload_t {
+    sstr_t status;           // "starting" | "downloading" | "done" | "error"
+    nullable int progress;   // 0-100; null when unknown
+    nullable sstr_t error;
+}
+
+struct ws_ota_progress_msg_t {
+    ws_ota_progress_payload_t payload;
+}
+
 oneof ws_server_message_t {
     @tag "cmd"
     ws_console_msg_t console;
@@ -75,6 +85,7 @@ oneof ws_server_message_t {
     ws_wifi_scan_result_msg_t wifi_scan_result;
     ws_packet_rx_msg_t packet_rx;
     ws_packet_tx_msg_t packet_tx;
+    ws_ota_progress_msg_t ota_progress;
 }
 
 // ── Client → server messages ──────────────────────────────────────────────────
@@ -125,4 +136,20 @@ oneof ws_client_message_t {
     ws_update_channel_msg_t update_channel;
     ws_wifi_scan_msg_t wifi_scan;
     ws_wifi_set_credentials_msg_t wifi_set_credentials;
+}
+
+// ── OTA HTTP API types ────────────────────────────────────────────────────────
+
+// Response for GET /api/ota/check
+struct ota_check_response_t {
+    bool update_available;
+    sstr_t current_version;
+    nullable sstr_t latest_version;
+    nullable sstr_t html_url;
+    nullable sstr_t asset_url;   // URL of the OTA-flashable .bin for this target
+}
+
+// Request body for POST /api/ota/apply
+struct ota_apply_request_t {
+    sstr_t url;
 }
