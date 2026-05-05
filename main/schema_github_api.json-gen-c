@@ -1,0 +1,16 @@
+// uni-gtw — GitHub Releases API response schema
+// Only fields relevant to OTA update checking are included.
+
+struct github_asset_t {
+    sstr_t name;
+    sstr_t browser_download_url;
+    sstr_t content_type;
+}
+
+struct github_release_t {
+    sstr_t tag_name;
+    sstr_t name;
+    sstr_t html_url;
+    bool prerelease;
+    github_asset_t assets[];
+}
