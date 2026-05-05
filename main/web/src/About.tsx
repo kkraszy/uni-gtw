@@ -39,29 +39,17 @@ export function About() {
         <Logo size={64} />
         <div>
           <h1 class="text-2xl font-bold tracking-wide">uni-gtw</h1>
-          <p class="text-zinc-400 text-sm mt-0.5">ESP32 RF Gateway for Cosmo blinds</p>
+          <p class="text-zinc-400 text-sm mt-0.5">
+            ESP32 RF Gateway for Cosmo blinds
+          </p>
         </div>
       </div>
 
-      {/* Firmware info */}
-      <section class="mb-6">
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">Firmware</h2>
-        <div class="border border-zinc-800 rounded-lg px-4">
-          <InfoTable rows={firmwareRows} />
-        </div>
-      </section>
-
-      {/* Device info */}
-      <section class="mb-6">
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">Device</h2>
-        <div class="border border-zinc-800 rounded-lg px-4">
-          <InfoTable rows={deviceRows} />
-        </div>
-      </section>
-
       {/* Links */}
       <section>
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">Links</h2>
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
+          Links
+        </h2>
         <a
           href="https://github.com/alufers/uni-gtw"
           target="_blank"
@@ -71,6 +59,26 @@ export function About() {
           <ExternalLink size={14} class="shrink-0" />
           github.com/alufers/uni-gtw
         </a>
+      </section>
+
+      {/* Firmware info */}
+      <section class="mb-6">
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
+          Firmware
+        </h2>
+        <div class="border border-zinc-800 rounded-lg px-4">
+          <InfoTable rows={firmwareRows} />
+        </div>
+      </section>
+
+      {/* Device info */}
+      <section class="mb-6">
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
+          Device
+        </h2>
+        <div class="border border-zinc-800 rounded-lg px-4">
+          <InfoTable rows={deviceRows} />
+        </div>
       </section>
     </div>
   );
