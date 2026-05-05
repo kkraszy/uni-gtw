@@ -16,6 +16,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const [status, setStatus] = useState<Status>("checking");
   const [password, setPassword] = useState<string | null>(null);
   const [language, setLanguage] = useState("en");
+  const [hostname, setHostname] = useState("");
+  const [chip, setChip] = useState("");
 
   useEffect(() => {
     const storedPw = localStorage.getItem(STORAGE_KEY);
@@ -26,6 +28,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
       .then((r) => r.json() as Promise<InfoResponse>)
       .then((info) => {
         setLanguage(info.language ?? "en");
+        setHostname(info.hostname ?? "");
+        setChip(info.chip ?? "");
 
         if (!info.web_password_enabled) {
           // Password protection disabled — clear any stale stored password
@@ -73,7 +77,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   }
 
   return (
-    <AuthContext.Provider value={{ password, language, onLogout: handleLogout }}>
+    <AuthContext.Provider value={{ password, language, hostname, chip, onLogout: handleLogout }}>
       {children}
     </AuthContext.Provider>
   );

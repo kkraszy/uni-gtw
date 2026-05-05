@@ -33,7 +33,7 @@ export function App() {
 }
 
 function AppInner() {
-  const { password, onLogout } = useContext(AuthContext);
+  const { password, onLogout, hostname, chip } = useContext(AuthContext);
   const [lines, setLines] = useState<string[]>([]);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [status, setStatus] = useState<StatusPayload | null>(null);
@@ -46,6 +46,10 @@ function AppInner() {
   const wifiDismissedRef = useRef(false);
   const lastStatusTimeRef = useRef<number>(0);
   const radioFlashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    document.title = hostname || "uni-gtw";
+  }, [hostname]);
 
   const wsUrl = password
     ? `ws://${location.host}/ws?auth=${encodeURIComponent(password)}`
@@ -143,6 +147,8 @@ function AppInner() {
         radioStatus={radioStatus}
         mqttStatus={mqttStatus}
         radioFlash={radioFlash}
+        hostname={hostname}
+        chip={chip}
         onGoToSettings={goToSettings}
         onOpenWifiModal={() => setShowWifiModal(true)}
         onLogout={password !== null ? onLogout : undefined}

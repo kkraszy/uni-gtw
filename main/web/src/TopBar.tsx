@@ -75,6 +75,8 @@ interface TopBarProps {
   radioStatus: RadioStatus | null;
   mqttStatus: MqttStatus | null;
   radioFlash: boolean;
+  hostname: string;
+  chip: string;
   onGoToSettings: () => void;
   onOpenWifiModal: () => void;
   onLogout?: () => void;
@@ -87,6 +89,8 @@ export function TopBar({
   radioStatus,
   mqttStatus,
   radioFlash,
+  hostname,
+  chip,
   onGoToSettings,
   onOpenWifiModal,
   onLogout,
@@ -124,7 +128,13 @@ export function TopBar({
     <div class="border-b border-zinc-800 shrink-0">
       {/* ── Desktop row (md+) ── always visible, hidden on mobile ────────── */}
       <div class="hidden md:flex items-center px-3 py-2.5 gap-2">
-        <span class="flex-1 font-bold tracking-wide text-sm">uni-gtw</span>
+        <span class="font-bold tracking-wide text-sm">{hostname || "uni-gtw"}</span>
+        {chip && (
+          <span class="text-xs text-zinc-500 font-mono border border-zinc-700 rounded px-1 leading-5">
+            {chip}
+          </span>
+        )}
+        <span class="flex-1" />
 
         {timeStr && (
           <Chip title="Local time">
@@ -218,7 +228,9 @@ export function TopBar({
         onClick={() => setMobileExpanded((v) => !v)}
         aria-expanded={mobileExpanded}
       >
-        <span class="flex-1 font-bold tracking-wide text-sm text-zinc-100">uni-gtw</span>
+        <span class="flex-1 font-bold tracking-wide text-sm text-zinc-100">
+          {hostname || "uni-gtw"}
+        </span>
 
         {/* Icon-only status indicators — no text, colors convey state */}
         {radioChip && (

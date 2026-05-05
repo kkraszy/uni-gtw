@@ -4,6 +4,8 @@ export interface InfoResponse {
   web_password_enabled: boolean;
   language: string;
   web_password_valid?: boolean | null;
+  hostname?: string;
+  chip?: string;
 }
 
 export type RadioStatus = "ok" | "error" | "not_configured";
