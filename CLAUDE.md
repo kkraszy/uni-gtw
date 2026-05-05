@@ -72,11 +72,7 @@ uni-gtw/
     ├── cosmo.h              # redirect: #include "cosmo/cosmo.h"
     └── web/                 # Preact SPA
         ├── package.json     # preact, vite, @preact/preset-vite
-        ├── tsconfig.json    # TS 6: strict, isolatedModules, jsxImportSource preact
-        ├── .oxlintrc.json   # oxlint config: react + unicorn + typescript plugins
-        ├── vite.config.js   # output: app.js + app.css (no hash)
-        └── src/
-            ├── vite-env.d.ts   # /// <reference types="vite/client" />
+
             ├── main.tsx
             ├── App.tsx         # WS connection lifted here; manages lines + channels state
             ├── Console.tsx     # accepts lines: string[] prop

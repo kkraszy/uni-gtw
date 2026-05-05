@@ -7,7 +7,7 @@ export default {
     rollupOptions: {
       output: {
         entryFileNames: 'app.js',
-        assetFileNames: (info) => info.name.endsWith('.css') ? 'app.css' : info.name,
+        assetFileNames: (info) => info.names.some((n) => n.endsWith('.css')) ? 'app.css' : info.names[0],
       }
     }
   }
