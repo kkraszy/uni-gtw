@@ -55,6 +55,8 @@ jobs:
           fetch-tags: true # to make git describe work
           fetch-depth: 0
 
+      - name: Add the repo path to safe.directory
+        run: git config --global --add safe.directory $PWD
       - name: Build firmware
         run: |
           . /opt/esp/idf/export.sh
