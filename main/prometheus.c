@@ -9,6 +9,7 @@
 #include "esp_heap_caps.h"
 #include "esp_http_server.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -41,6 +42,9 @@ static esp_err_t metrics_handler(httpd_req_t *req)
         return ESP_OK;
     }
 
+    /* ── Uptime ──────────────────────────────────────────────────────────── */
+    int64_t uptime_s = esp_timer_get_time() / 1000000;
+
     /* ── Heap globals ────────────────────────────────────────────────────── */
     size_t free_heap  = esp_get_free_heap_size();
     size_t min_free   = esp_get_minimum_free_heap_size();
@@ -64,7 +68,7 @@ static esp_err_t metrics_handler(httpd_req_t *req)
 #endif
 
     /* ── Size and allocate output buffer ────────────────────────────────── */
-    size_t buf_size = 1024                         /* heap globals + headers */
+    size_t buf_size = 1280                         /* uptime + heap globals + headers */
                     + (size_t)num_tasks * 160;     /* stack metrics per task */
 #if CONFIG_HEAP_TASK_TRACKING
     if (ht_ok) buf_size += 512 + htstat.task_count * 160; /* heap metrics per task */
@@ -87,6 +91,13 @@ static esp_err_t metrics_handler(httpd_req_t *req)
         int _n = snprintf(buf + pos, buf_size - (size_t)pos, __VA_ARGS__); \
         if (_n > 0) pos += _n; \
     } while (0)
+
+    /* ── Uptime metric ───────────────────────────────────────────────────── */
+    APPEND(
+        "# HELP uni_gtw_uptime_seconds Seconds since boot\n"
+        "# TYPE uni_gtw_uptime_seconds counter\n"
+        "uni_gtw_uptime_seconds %" PRId64 "\n",
+        uptime_s);
 
     /* ── Heap global metrics ─────────────────────────────────────────────── */
     APPEND(
