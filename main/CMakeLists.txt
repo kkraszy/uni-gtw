@@ -46,6 +46,7 @@ idf_component_register(
         "utils.c"
         "console.c"
         "ota.c"
+        "prometheus.c"
     INCLUDE_DIRS "."
     REQUIRES
         esp_wifi

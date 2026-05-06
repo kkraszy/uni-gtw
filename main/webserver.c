@@ -4,6 +4,7 @@
 #include "radio.h"
 #include "config.h"
 #include "mqtt.h"
+#include "prometheus.h"
 #include "status_led.h"
 #include "utils.h"
 #include "wifi_manager.h"
@@ -618,6 +619,7 @@ static void apply_settings_from_buf(const char *buf, int len)
     JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_web_password_enabled);
     JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_web_password);
     JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_language);
+    JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_prometheus_enable);
 
     /* Save previous password before unmarshal overwrites it */
     config_lock();
@@ -910,6 +912,8 @@ void webserver_start(void)
     httpd_register_uri_handler(s_server, &uri_restore_post);
     httpd_register_uri_handler(s_server, &uri_backup_get);
     httpd_register_uri_handler(s_server, &uri_info_get);
+
+    prometheus_init(s_server);
 
     ESP_LOGI(TAG, "HTTP server started");
 }

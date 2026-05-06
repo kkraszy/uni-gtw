@@ -41,6 +41,7 @@ export interface SettingsData {
   web_password_enabled: boolean;
   web_password: string;
   language: "en" | "pl";
+  prometheus_enable: boolean;
 }
 
 type SaveStatus = "idle" | "loading" | "saving" | "saved" | "rebooting" | "error";
@@ -643,6 +644,27 @@ export function Settings() {
                 Inhibited for 45 s after any manual command.
               </Hint>
             </div>
+
+            <SubSection title="Observability">
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={draft.prometheus_enable}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      prometheus_enable: (e.target as HTMLInputElement).checked,
+                    })
+                  }
+                  class="w-4 h-4 accent-blue-500"
+                />
+                <span class="text-xs text-zinc-300">
+                  Enable Prometheus metrics endpoint (
+                  <span class="font-mono text-zinc-400">/metrics</span>)
+                </span>
+              </label>
+              <Hint>Exposes heap and per-task stack metrics for Prometheus scraping.</Hint>
+            </SubSection>
           </SectionCard>
 
           {/* ── Save ────────────────────────────────────────────────────── */}

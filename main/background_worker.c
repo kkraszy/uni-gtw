@@ -12,6 +12,7 @@
 #include "esp_heap_caps.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
+#include "freertos/task.h"
 
 static const char *TAG = "bg_worker";
 
@@ -19,6 +20,19 @@ static const char *TAG = "bg_worker";
 
 static TimerHandle_t s_save_timer  = NULL; /* one-shot, 5 s debounce        */
 static TimerHandle_t s_query_timer = NULL; /* auto-reload, CHECK_INTERVAL_MS */
+
+/* ── Dedicated save task ─────────────────────────────────────────────────── */
+
+static TaskHandle_t s_save_task = NULL;
+
+static void save_task_fn(void *arg)
+{
+    (void)arg;
+    for (;;) {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        config_do_save();
+    }
+}
 
 /* ── Inhibit state ───────────────────────────────────────────────────────── */
 
@@ -92,7 +106,8 @@ static void maybe_query_position(void)
 static void save_timer_cb(TimerHandle_t t)
 {
     (void)t;
-    config_do_save();
+    if (s_save_task)
+        xTaskNotifyGive(s_save_task);
 }
 
 static void query_timer_cb(TimerHandle_t t)
@@ -116,7 +131,10 @@ static void query_timer_cb(TimerHandle_t t)
 
 void background_worker_init(void)
 {
-    s_save_timer = xTimerCreate("cfg_save", pdMS_TO_TICKS(5000),
+    xTaskCreate(save_task_fn, "cfg_save", 4096, NULL, tskIDLE_PRIORITY + 1,
+                &s_save_task);
+
+    s_save_timer = xTimerCreate("cfg_save_tmr", pdMS_TO_TICKS(5000),
                                 pdFALSE, NULL, save_timer_cb);
 
     s_query_timer = xTimerCreate("pos_query", pdMS_TO_TICKS(CHECK_INTERVAL_MS),
