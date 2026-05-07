@@ -59,10 +59,12 @@ const config: Config = {
     // Replace with your project's social card
     image: "img/docusaurus-social-card.jpg",
     colorMode: {
+      defaultMode: "dark",
       respectPrefersColorScheme: true,
+      disableSwitch: true,
     },
     navbar: {
-      title: "uni-gtw docs",
+      title: "uni-gtw",
       logo: {
         alt: "uni-gtw logo",
         src: "img/uni-gtw-logo.svg",
@@ -85,7 +87,7 @@ const config: Config = {
     footer: {
       style: "dark",
       links: [],
-      copyright: `Copyright © ${new Date().getFullYear()} Albert Koczy, Inc. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Albert Koczy. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,
