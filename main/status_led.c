@@ -1,5 +1,6 @@
 #include "status_led.h"
 #include "config.h"
+#include "hardware_presets.h"
 
 #include <string.h>
 
@@ -243,6 +244,7 @@ static void led_hw_init(int gpio)
 void status_led_init(void)
 {
     s_mutex = xSemaphoreCreateMutex();
+    hardware_preset_resolved_t resolved;
 
     esp_timer_create_args_t ba = { .callback = breathe_timer_cb, .name = "led_breathe" };
     esp_timer_create_args_t pa = { .callback = pulse_timer_cb,   .name = "led_pulse"   };
@@ -255,8 +257,10 @@ void status_led_init(void)
                                                wifi_event_handler, NULL));
 
     config_lock();
-    int gpio = g_config.gpio_status_led;
+    hardware_presets_resolve(&resolved, &g_config);
     config_unlock();
+
+    int gpio = resolved.gpio_status_led;
 
     if (gpio >= 0) {
         led_hw_init(gpio);
@@ -268,9 +272,12 @@ void status_led_init(void)
 
 void status_led_apply_config(void)
 {
+    hardware_preset_resolved_t resolved;
     config_lock();
-    int new_gpio = g_config.gpio_status_led;
+    hardware_presets_resolve(&resolved, &g_config);
     config_unlock();
+
+    int new_gpio = resolved.gpio_status_led;
 
     if (new_gpio == s_gpio) return;
 

@@ -40,6 +40,7 @@ idf_component_register(
         "radio.c"
         "channel.c"
         "config.c"
+        "hardware_presets.c"
         "background_worker.c"
         "mqtt.c"
         "status_led.c"

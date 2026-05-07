@@ -108,6 +108,7 @@ void config_init(void)
     g_config.mqtt.url                        = sstr("");
     g_config.mqtt.username                   = sstr("");
     g_config.mqtt.password                   = sstr("");
+    g_config.hardware_preset                 = hardware_preset_t_custom;
     g_config.position_status_query_interval_s = 60;
     g_config.gpio_status_led                 = -1;
 

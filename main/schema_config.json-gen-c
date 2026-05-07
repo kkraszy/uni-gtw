@@ -110,6 +110,11 @@ enum radio_type_t {
     sx1262
 }
 
+enum hardware_preset_t {
+    custom,
+    heltec_v4
+}
+
 struct radio_config_t {
     bool enabled;
     radio_type_t type;
@@ -164,6 +169,7 @@ struct gateway_config_t {
     sstr_t hostname;
     mqtt_config_t mqtt;
     radio_config_t radio;
+    hardware_preset_t hardware_preset;
     int position_status_query_interval_s;
     int gpio_status_led;
     bool web_password_enabled;

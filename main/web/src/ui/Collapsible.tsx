@@ -5,10 +5,11 @@ import { ChevronRight, ChevronDown } from "lucide-preact";
 interface CollapsibleProps {
   label: string;
   children: ComponentChildren;
+  defaultOpen?: boolean;
 }
 
-export function Collapsible({ label, children }: CollapsibleProps) {
-  const [open, setOpen] = useState(false);
+export function Collapsible({ label, children, defaultOpen = false }: CollapsibleProps) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
     <>
       <button

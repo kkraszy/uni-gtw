@@ -4,6 +4,7 @@
 #include "sx1262.h"
 #include "config.h"
 #include "cosmo/cosmo.h"
+#include "hardware_presets.h"
 #include "status_led.h"
 #include "webserver.h"
 #include "channel.h"
@@ -347,30 +348,28 @@ radio_state_t radio_get_state(void)
 
 esp_err_t radio_init(void)
 {
-    struct radio_config_t hw;
-    radio_config_t_init(&hw);
+    hardware_preset_resolved_t resolved;
     config_lock();
-    radio_config_t_copy(&hw, &g_config.radio);
+    hardware_presets_resolve(&resolved, &g_config);
     config_unlock();
-    return radio_do_init(&hw);
+    return radio_do_init(&resolved.radio);
 }
 
 esp_err_t radio_apply_config(void)
 {
-    struct radio_config_t desired;
-    radio_config_t_init(&desired);
+    hardware_preset_resolved_t resolved;
     config_lock();
-    radio_config_t_copy(&desired, &g_config.radio);
+    hardware_presets_resolve(&resolved, &g_config);
     config_unlock();
 
-    if (radio_config_equal(&s_active_cfg, &desired)) {
+    if (radio_config_equal(&s_active_cfg, &resolved.radio)) {
         ESP_LOGI(TAG, "Radio config unchanged, skipping reinit");
         return s_initialized ? ESP_OK : ESP_ERR_NOT_SUPPORTED;
     }
 
     ESP_LOGI(TAG, "Radio config changed, reinitializing");
     radio_do_deinit();
-    return radio_do_init(&desired);
+    return radio_do_init(&resolved.radio);
 }
 
 esp_err_t radio_deinit(void)

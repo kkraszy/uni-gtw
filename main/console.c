@@ -374,6 +374,14 @@ static int do_config_set(int argc, char **argv) {
   if (strcmp(name, "gpio_status_led") == 0) {
     g_config.gpio_status_led = (int)strtol(val, NULL, 0);
     need_led = true;
+  } else if (strcmp(name, "hardware_preset") == 0) {
+    if (strcmp(val, "heltec_v4") == 0) {
+      g_config.hardware_preset = hardware_preset_t_heltec_v4;
+    } else {
+      g_config.hardware_preset = hardware_preset_t_custom;
+    }
+    need_radio = true;
+    need_led = true;
   } else if (strcmp(name, "radio.enabled") == 0) {
     g_config.radio.enabled =
         (strcmp(val, "true") == 0 || strcmp(val, "1") == 0);
@@ -409,13 +417,17 @@ static int do_config_set(int argc, char **argv) {
   } else if (strcmp(name, "radio.gpio_busy") == 0) {
     g_config.radio.gpio_busy = (int)strtol(val, NULL, 0);
     need_radio = true;
+  } else if (strcmp(name, "radio.gpio_pa_enable") == 0) {
+    g_config.radio.gpio_pa_enable = (int)strtol(val, NULL, 0);
+    need_radio = true;
   } else {
     config_unlock();
     printf("Unknown setting: %s\n", name);
-    printf("Valid: gpio_status_led, radio.enabled, radio.type,\n"
+    printf("Valid: gpio_status_led, hardware_preset, radio.enabled, radio.type,\n"
            "       radio.gpio_miso, radio.gpio_mosi, radio.gpio_sck,\n"
            "       radio.gpio_csn, radio.gpio_gdo0, radio.spi_freq_hz,\n"
-           "       radio.gpio_rst (SX1262), radio.gpio_busy (SX1262)\n");
+           "       radio.gpio_rst (SX1262), radio.gpio_busy (SX1262),\n"
+           "       radio.gpio_pa_enable\n");
     return 1;
   }
   config_unlock();
@@ -438,7 +450,7 @@ static void register_config_set(void) {
   const esp_console_cmd_t cmd = {
       .command = "config_set",
       .help = "Set a runtime config value",
-      .hint = " <gpio_status_led|radio.enabled|radio.type|radio.gpio_*|radio.spi_freq_hz> "
+      .hint = " <gpio_status_led|hardware_preset|radio.enabled|radio.type|radio.gpio_*|radio.spi_freq_hz> "
               "<value>",
       .func = &do_config_set,
       .argtable = &config_set_args,

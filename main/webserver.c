@@ -616,6 +616,7 @@ static void apply_settings_from_buf(const char *buf, int len)
     JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_hostname);
     JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_mqtt);
     JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_radio);
+    JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_hardware_preset);
     JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_position_status_query_interval_s);
     JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_gpio_status_led);
     JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_web_password_enabled);
