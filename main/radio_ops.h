@@ -5,6 +5,7 @@
 #include "esp_err.h"
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
+#include "json.gen.h"
 
 /* ── Channel hopping mode ────────────────────────────────────────────────── */
 
@@ -14,30 +15,12 @@ typedef enum {
     RADIO_HOP_ENABLED,       /* alternate every CHANNEL_HOPPING_INTERVAL_MS  */
 } radio_channel_hopping_mode_t;
 
-/* ── Hardware configuration snapshot ────────────────────────────────────── */
-/* Passed to radio_ops_t::init(); radio.c owns the SPI bus, drivers own only
- * the SPI device (spi_bus_add_device / spi_bus_remove_device).             */
-
-typedef struct {
-    bool           enabled;
-    int            type;      /* radio_type_t value; int to avoid generated-header dep */
-    int            gpio_miso;
-    int            gpio_mosi;
-    int            gpio_sck;
-    int            gpio_csn;
-    int            gpio_gdo0;   /* CC1101: GDO0;  SX1262: DIO1 (IRQ) */
-    int            gpio_rst;    /* SX1262 RST  (-1 for CC1101)        */
-    int            gpio_busy;   /* SX1262 BUSY (-1 for CC1101)        */
-    int            gpio_pa_enable; /* External PA enable output (-1 to disable) */
-    int            spi_freq_hz;
-} radio_hw_cfg_t;
-
 /* ── Driver ops interface ────────────────────────────────────────────────── */
 
 typedef struct radio_ops_s {
     /* Initialise the driver.  The SPI bus identified by `host` has already
      * been initialised by radio.c.  The driver adds its own device. */
-    esp_err_t       (*init)(const radio_hw_cfg_t *cfg, spi_host_device_t host);
+    esp_err_t       (*init)(const struct radio_config_t *cfg, spi_host_device_t host);
 
     /* Release the SPI device (spi_bus_remove_device).  radio.c calls
      * spi_bus_free() afterwards. */

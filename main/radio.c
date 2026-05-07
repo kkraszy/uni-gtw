@@ -49,22 +49,22 @@ static radio_state_t     s_radio_state       = RADIO_STATE_NOT_CONFIGURED;
 static const radio_ops_t *s_ops = NULL;
 
 /* Snapshot of the config that is currently running in hardware */
-static radio_hw_cfg_t s_active_cfg;
+static struct radio_config_t s_active_cfg;
 
-/* Must be called with config_lock() held. */
-static void radio_hw_cfg_from_config(radio_hw_cfg_t *out)
+static bool radio_config_equal(const struct radio_config_t *lhs,
+                               const struct radio_config_t *rhs)
 {
-    out->enabled     = g_config.radio.enabled;
-    out->type        = g_config.radio.type;
-    out->gpio_miso   = g_config.radio.gpio_miso;
-    out->gpio_mosi   = g_config.radio.gpio_mosi;
-    out->gpio_sck    = g_config.radio.gpio_sck;
-    out->gpio_csn    = g_config.radio.gpio_csn;
-    out->gpio_gdo0   = g_config.radio.gpio_gdo0;
-    out->gpio_rst    = g_config.radio.gpio_rst;
-    out->gpio_busy   = g_config.radio.gpio_busy;
-    out->gpio_pa_enable = g_config.radio.gpio_pa_enable;
-    out->spi_freq_hz = g_config.radio.spi_freq_hz;
+    return lhs->enabled == rhs->enabled &&
+           lhs->type == rhs->type &&
+           lhs->gpio_miso == rhs->gpio_miso &&
+           lhs->gpio_mosi == rhs->gpio_mosi &&
+           lhs->gpio_sck == rhs->gpio_sck &&
+           lhs->gpio_csn == rhs->gpio_csn &&
+           lhs->gpio_gdo0 == rhs->gpio_gdo0 &&
+           lhs->gpio_rst == rhs->gpio_rst &&
+           lhs->gpio_busy == rhs->gpio_busy &&
+           lhs->gpio_pa_enable == rhs->gpio_pa_enable &&
+           lhs->spi_freq_hz == rhs->spi_freq_hz;
 }
 
 /* ── ISR ─────────────────────────────────────────────────────────────────── */
@@ -244,11 +244,11 @@ static void radio_do_deinit(void)
 
     s_initialized = false;
     s_radio_state = RADIO_STATE_NOT_CONFIGURED;
-    memset(&s_active_cfg, 0, sizeof(s_active_cfg));
+    radio_config_t_clear(&s_active_cfg);
     ESP_LOGI(TAG, "Radio deinitialized");
 }
 
-static esp_err_t radio_do_init(const radio_hw_cfg_t *hw)
+static esp_err_t radio_do_init(const struct radio_config_t *hw)
 {
     if (!hw->enabled) {
         ESP_LOGI(TAG, "Radio not enabled in config, skipping init");
@@ -309,7 +309,7 @@ static esp_err_t radio_do_init(const radio_hw_cfg_t *hw)
     gpio_isr_handler_add(s_active_irq_gpio, radio_irq_isr, NULL);
 
     xTaskCreate(radio_task, "radio", 4096, NULL, 10, &s_radio_task_handle);
-    s_active_cfg    = *hw;
+    radio_config_t_copy(&s_active_cfg, hw);
     s_initialized   = true;
     s_radio_state   = RADIO_STATE_OK;
     ESP_LOGI(TAG, "Radio initialised, entering RX");
@@ -347,21 +347,23 @@ radio_state_t radio_get_state(void)
 
 esp_err_t radio_init(void)
 {
-    radio_hw_cfg_t hw;
+    struct radio_config_t hw;
+    radio_config_t_init(&hw);
     config_lock();
-    radio_hw_cfg_from_config(&hw);
+    radio_config_t_copy(&hw, &g_config.radio);
     config_unlock();
     return radio_do_init(&hw);
 }
 
 esp_err_t radio_apply_config(void)
 {
-    radio_hw_cfg_t desired;
+    struct radio_config_t desired;
+    radio_config_t_init(&desired);
     config_lock();
-    radio_hw_cfg_from_config(&desired);
+    radio_config_t_copy(&desired, &g_config.radio);
     config_unlock();
 
-    if (memcmp(&s_active_cfg, &desired, sizeof(desired)) == 0) {
+    if (radio_config_equal(&s_active_cfg, &desired)) {
         ESP_LOGI(TAG, "Radio config unchanged, skipping reinit");
         return s_initialized ? ESP_OK : ESP_ERR_NOT_SUPPORTED;
     }
