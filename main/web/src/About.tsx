@@ -64,13 +64,10 @@ export function About() {
 
       <SectionCard icon={Scale} title="License">
         <div class="flex flex-col gap-3 text-sm text-zinc-300">
-          <p>
-            uni-gtw is licensed under the GNU General Public License, version 3
-            (GPLv3).
-          </p>
+          <p>uni-gtw is licensed under the GNU General Public License, version 3 (GPLv3).</p>
           <p class="text-zinc-400">
-            You may use, study, modify, and redistribute it under the terms of
-            that license. The software is provided without warranty.
+            You may use, study, modify, and redistribute it under the terms of that license. The
+            software is provided without warranty.
           </p>
           <a
             href="https://github.com/alufers/uni-gtw/blob/master/LICENSE"
