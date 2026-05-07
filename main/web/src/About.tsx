@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import { Cpu, ExternalLink, Package } from "lucide-preact";
+import { Cpu, ExternalLink, Package, Scale } from "lucide-preact";
 import { Logo } from "./Logo";
 import { InfoTable } from "./ui/InfoTable";
 import type { InfoRow } from "./ui/InfoTable";
@@ -60,6 +60,28 @@ export function About() {
 
       <SectionCard icon={Package} title="Firmware">
         <InfoTable rows={firmwareRows} />
+      </SectionCard>
+
+      <SectionCard icon={Scale} title="License">
+        <div class="flex flex-col gap-3 text-sm text-zinc-300">
+          <p>
+            uni-gtw is licensed under the GNU General Public License, version 3
+            (GPLv3).
+          </p>
+          <p class="text-zinc-400">
+            You may use, study, modify, and redistribute it under the terms of
+            that license. The software is provided without warranty.
+          </p>
+          <a
+            href="https://github.com/alufers/uni-gtw/blob/master/LICENSE"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 border border-zinc-800 hover:border-zinc-600 rounded-lg px-4 py-2.5 transition-colors self-start"
+          >
+            <ExternalLink size={14} class="shrink-0" />
+            View full GPLv3 license text
+          </a>
+        </div>
       </SectionCard>
 
       <SectionCard icon={Cpu} title="Device">
