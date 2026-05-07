@@ -3,6 +3,7 @@
 #include "channel.h"
 #include "config.h"
 #include "radio.h"
+#include "prometheus.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -498,6 +499,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base,
                 channel_send_cmd(ch.serial, COSMO_BTN_DOWN, 0);
             else if (strcmp(data, "STOP") == 0)
                 channel_send_cmd(ch.serial, COSMO_BTN_STOP, 0);
+            prometheus_inc_tx_mqtt();
             background_worker_inhibit_position_query();
 
         } else if (strncmp(subtopic, "set_position", (size_t)subtopic_len) == 0) {
@@ -506,6 +508,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base,
                 if (pos < 0)   pos = 0;
                 if (pos > 100) pos = 100;
                 channel_send_cmd(ch.serial, COSMO_BTN_SET_POSITION, (uint8_t)pos);
+                prometheus_inc_tx_mqtt();
                 background_worker_inhibit_position_query();
             }
         }

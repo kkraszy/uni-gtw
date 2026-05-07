@@ -2,6 +2,7 @@
 #include "config.h"
 
 #include <inttypes.h>
+#include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,6 +19,24 @@
 #endif
 
 static const char *TAG = "prometheus";
+
+/* ── Radio / TX counters ─────────────────────────────────────────────────── */
+
+static _Atomic uint32_t s_rx_total    = 0;
+static _Atomic uint32_t s_rx_1way     = 0;
+static _Atomic uint32_t s_rx_2way     = 0;
+static _Atomic uint32_t s_rx_malformed = 0;
+static _Atomic uint32_t s_tx_web      = 0;
+static _Atomic uint32_t s_tx_mqtt     = 0;
+static _Atomic uint32_t s_tx_auto     = 0;
+
+void prometheus_inc_rx_total(void)    { atomic_fetch_add(&s_rx_total,     1); }
+void prometheus_inc_rx_1way(void)     { atomic_fetch_add(&s_rx_1way,      1); }
+void prometheus_inc_rx_2way(void)     { atomic_fetch_add(&s_rx_2way,      1); }
+void prometheus_inc_rx_malformed(void){ atomic_fetch_add(&s_rx_malformed, 1); }
+void prometheus_inc_tx_web(void)      { atomic_fetch_add(&s_tx_web,       1); }
+void prometheus_inc_tx_mqtt(void)     { atomic_fetch_add(&s_tx_mqtt,      1); }
+void prometheus_inc_tx_auto(void)     { atomic_fetch_add(&s_tx_auto,      1); }
 
 /*
  * StaticTask_t.pxDummy8 == TCB_t.pxEndOfStack — verified by static asserts
@@ -69,7 +88,8 @@ static esp_err_t metrics_handler(httpd_req_t *req)
 
     /* ── Size and allocate output buffer ────────────────────────────────── */
     size_t buf_size = 1280                         /* uptime + heap globals + headers */
-                    + (size_t)num_tasks * 160;     /* stack metrics per task */
+                    + (size_t)num_tasks * 160      /* stack metrics per task */
+                    + 1024;                        /* radio/tx counters */
 #if CONFIG_HEAP_TASK_TRACKING
     if (ht_ok) buf_size += 512 + htstat.task_count * 160; /* heap metrics per task */
 #endif
@@ -159,6 +179,37 @@ static esp_err_t metrics_handler(httpd_req_t *req)
         heap_caps_free_all_task_stat_arrays(&htstat);
     }
 #endif
+
+    /* ── Radio RX / TX counters ──────────────────────────────────────────── */
+    uint32_t rx_total     = atomic_load(&s_rx_total);
+    uint32_t rx_1way      = atomic_load(&s_rx_1way);
+    uint32_t rx_2way      = atomic_load(&s_rx_2way);
+    uint32_t rx_malformed = atomic_load(&s_rx_malformed);
+    uint32_t tx_web       = atomic_load(&s_tx_web);
+    uint32_t tx_mqtt      = atomic_load(&s_tx_mqtt);
+    uint32_t tx_auto      = atomic_load(&s_tx_auto);
+
+    APPEND(
+        "# HELP uni_gtw_rx_packets_total Total received radio packets by protocol\n"
+        "# TYPE uni_gtw_rx_packets_total counter\n"
+        "uni_gtw_rx_packets_total{proto=\"1way\"} %" PRIu32 "\n"
+        "uni_gtw_rx_packets_total{proto=\"2way\"} %" PRIu32 "\n"
+        "# HELP uni_gtw_rx_malformed_packets_total Total received radio packets that failed to decode\n"
+        "# TYPE uni_gtw_rx_malformed_packets_total counter\n"
+        "uni_gtw_rx_malformed_packets_total %" PRIu32 "\n"
+        "# HELP uni_gtw_rx_total_packets_total Total received radio packets (all)\n"
+        "# TYPE uni_gtw_rx_total_packets_total counter\n"
+        "uni_gtw_rx_total_packets_total %" PRIu32 "\n",
+        rx_1way, rx_2way, rx_malformed, rx_total);
+
+    APPEND(
+        "# HELP uni_gtw_tx_commands_total Total TX commands sent by source\n"
+        "# TYPE uni_gtw_tx_commands_total counter\n"
+        "uni_gtw_tx_commands_total{source=\"web\"} %" PRIu32 "\n"
+        "uni_gtw_tx_commands_total{source=\"mqtt\"} %" PRIu32 "\n"
+        "uni_gtw_tx_commands_total{source=\"auto\"} %" PRIu32 "\n"
+        "uni_gtw_tx_commands_total{source=\"all\"} %" PRIu32 "\n",
+        tx_web, tx_mqtt, tx_auto, tx_web + tx_mqtt + tx_auto);
 
 #undef APPEND
 

@@ -1,10 +1,9 @@
 import { useContext, useEffect, useState } from "preact/hooks";
-import { Download } from "lucide-preact";
+import { Download, Loader2 } from "lucide-preact";
 import { AuthContext } from "./AuthContext";
 import { Modal } from "./ui/Modal";
 import { Button } from "./ui/Button";
 import { Collapsible } from "./ui/Collapsible";
-import { PageLoader } from "./ui/PageLoader";
 import { SectionCard } from "./ui/SectionCard";
 import { OtaProgressPayload } from "./wsTypes";
 
@@ -44,7 +43,7 @@ export function Ota({ otaProgress }: OtaProps) {
   const [showModal, setShowModal] = useState(false);
   const [manualUrl, setManualUrl] = useState("");
 
-  useEffect(() => {
+  const checkForUpdates = () => {
     const headers: Record<string, string> = password ? { "X-Auth": password } : {};
     setChecking(true);
     setCheckError(null);
@@ -56,7 +55,13 @@ export function Ota({ otaProgress }: OtaProps) {
       .then((data) => setCheckResult(data))
       .catch((e) => setCheckError(String(e)))
       .finally(() => setChecking(false));
-  }, [password]);
+  };
+
+  useEffect(() => {
+    if (otaProgress?.status !== "done") return;
+    const t = setTimeout(() => window.location.reload(), 7000);
+    return () => clearTimeout(t);
+  }, [otaProgress?.status]);
 
   const applyUrl = (url: string) => {
     const headers: Record<string, string> = password ? { "X-Auth": password } : {};
@@ -87,30 +92,38 @@ export function Ota({ otaProgress }: OtaProps) {
 
   const isDone = otaProgress?.status === "done" || otaProgress?.status === "error";
 
-  if (checking) {
-    return <PageLoader message="Checking for updates…" />;
-  }
-
-  if (checkError) {
-    return <PageLoader message={`Failed to check for updates: ${checkError}`} error />;
-  }
-
   return (
     <>
       <div class="p-4 overflow-y-auto h-full">
         <div class="max-w-lg mx-auto">
           <SectionCard icon={Download} title="Firmware Updates">
-            <div class="text-xs text-zinc-400 flex flex-col gap-1">
-              <span>
-                Current version:{" "}
-                <span class="text-zinc-200">{checkResult?.current_version ?? "unknown"}</span>
-              </span>
-              {checkResult?.latest_version && (
+            {checking && (
+              <div class="flex items-center gap-2 text-xs text-zinc-400">
+                <Loader2 class="animate-spin" size={14} />
+                Checking for updates…
+              </div>
+            )}
+            {!checkResult && !checkError && !checking && (
+              <Button variant="secondary" onClick={checkForUpdates}>
+                Check for Updates
+              </Button>
+            )}
+            {checkError && (
+              <p class="text-xs text-red-400">Failed to check for updates: {checkError}</p>
+            )}
+            {checkResult && (
+              <div class="text-xs text-zinc-400 flex flex-col gap-1">
                 <span>
-                  Latest version: <span class="text-zinc-200">{checkResult.latest_version}</span>
+                  Current version:{" "}
+                  <span class="text-zinc-200">{checkResult.current_version ?? "unknown"}</span>
                 </span>
-              )}
-            </div>
+                {checkResult.latest_version && (
+                  <span>
+                    Latest version: <span class="text-zinc-200">{checkResult.latest_version}</span>
+                  </span>
+                )}
+              </div>
+            )}
 
             {checkResult?.update_available ? (
               <div class="flex flex-col gap-3">
@@ -138,7 +151,7 @@ export function Ota({ otaProgress }: OtaProps) {
                 </Button>
               </div>
             ) : (
-              <p class="text-xs text-zinc-400">Firmware is up to date.</p>
+              checkResult && <p class="text-xs text-zinc-400">Firmware is up to date.</p>
             )}
 
             <div class="border-t border-zinc-800 pt-4 -mt-1">
@@ -178,6 +191,7 @@ export function Ota({ otaProgress }: OtaProps) {
           onCancel={isDone ? closeModal : () => {}}
           onOk={isDone ? closeModal : undefined}
           okLabel="Close"
+          hideCloseButton={!isDone}
         >
           <div class="flex flex-col gap-3">
             {applyError ? (

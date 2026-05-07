@@ -1,6 +1,7 @@
 #include "webserver.h"
 #include "background_worker.h"
 #include "channel.h"
+#include "prometheus.h"
 #include "radio.h"
 #include "config.h"
 #include "mqtt.h"
@@ -374,6 +375,7 @@ static void ws_dispatch(int fd, const char *text)
         if (!utils_cmd_name_to_cosmo(m->cmd_name, &cosmo_cmd)) break;
         uint8_t extra = m->has_extra_payload ? (uint8_t)m->extra_payload : 0;
         channel_send_cmd(m->serial, cosmo_cmd, extra);
+        prometheus_inc_tx_web();
         background_worker_inhibit_position_query();
         break;
     }

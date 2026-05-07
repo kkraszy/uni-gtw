@@ -9,6 +9,7 @@ interface ModalProps {
   onCancel: () => void;
   okLabel?: string;
   okDisabled?: boolean;
+  hideCloseButton?: boolean;
   children: ComponentChildren;
 }
 
@@ -18,6 +19,7 @@ export function Modal({
   onCancel,
   okLabel = "OK",
   okDisabled = false,
+  hideCloseButton = false,
   children,
 }: ModalProps) {
   useEffect(() => {
@@ -39,12 +41,14 @@ export function Modal({
         {/* Title bar */}
         <div class="flex items-center px-4 py-3 border-b border-zinc-700">
           <span class="flex-1 font-bold text-sm text-zinc-100">{title}</span>
-          <button
-            class="text-zinc-500 hover:text-zinc-200 bg-transparent border-0 cursor-pointer text-lg leading-none"
-            onClick={onCancel}
-          >
-            ×
-          </button>
+          {!hideCloseButton && (
+            <button
+              class="text-zinc-500 hover:text-zinc-200 bg-transparent border-0 cursor-pointer text-lg leading-none"
+              onClick={onCancel}
+            >
+              ×
+            </button>
+          )}
         </div>
 
         {/* Scrollable content */}

@@ -7,6 +7,7 @@
 #include "status_led.h"
 #include "webserver.h"
 #include "channel.h"
+#include "prometheus.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -100,6 +101,7 @@ static void radio_handle_rx(void)
     esp_err_t err = s_ops->handle_rx_irq(buf, COSMO_RAW_PACKET_LEN,
                                          &rssi_dbm, &freq_off_khz);
     if (err != ESP_OK) return;  /* driver already reset RX internally */
+    prometheus_inc_rx_total();
 
     char bin[COSMO_RAW_PACKET_LEN * 9];
     bytes_to_bin(buf, COSMO_RAW_PACKET_LEN, bin);
@@ -117,8 +119,13 @@ static void radio_handle_rx(void)
         gtw_console_log("PKT %s freq_off=%+d kHz", pkt_str, (int)freq_off_khz);
         channel_update_from_packet(&pkt);
         status_led_on_rx();
+        if (pkt.proto == PROTO_COSMO_2WAY)
+            prometheus_inc_rx_2way();
+        else
+            prometheus_inc_rx_1way();
     } else {
         gtw_console_log("RADIO: bad pkt  rssi=%d dBm", (int)rssi_dbm);
+        prometheus_inc_rx_malformed();
     }
     webserver_ws_broadcast_packet(false, buf, COSMO_RAW_PACKET_LEN,
                                   decode_err == ESP_OK,
@@ -133,9 +140,26 @@ static void radio_do_tx(const cosmo_packet_t *pkt)
     status_led_on_tx();
 
     cosmo_raw_packet_t raw;
-    for (int i = 0; i < total; i++) {
-        if (i > 0)
-            vTaskDelay(pdMS_TO_TICKS(400));
+    bool aborted = false;
+    for (int i = 0; i < total && !aborted; i++) {
+        if (i > 0) {
+            /* Interruptible 400 ms inter-repeat delay: poll every 10 ms so a
+             * new command for the same channel with a different cmd can abort
+             * the remaining repeats immediately. */
+            radio_evt_t peek_evt;
+            for (int tick = 0; tick < 40; tick++) {
+                vTaskDelay(pdMS_TO_TICKS(10));
+                if (xQueuePeek(s_radio_queue, &peek_evt, 0) == pdTRUE &&
+                    peek_evt.type == RADIO_EVT_TX &&
+                    peek_evt.pkt.serial == pkt->serial &&
+                    peek_evt.pkt.cmd != pkt->cmd) {
+                    gtw_console_log("RADIO: TX aborted (new cmd for same channel)");
+                    aborted = true;
+                    break;
+                }
+            }
+            if (aborted) break;
+        }
 
         cosmo_encode(pkt, &raw);
 

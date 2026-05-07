@@ -132,6 +132,7 @@ if(NOT CMAKE_BUILD_EARLY_EXPANSION)
             -DCMAKE_C_COMPILER=${HOST_C_COMPILER}
             -DCMAKE_BUILD_TYPE=Release
             -DBUILD_TESTING=OFF
+            -DCMAKE_C_FLAGS=-Wno-unused-but-set-variable
         BUILD_BYPRODUCTS
             "${JSON_GEN_C_BIN}"
         INSTALL_COMMAND ""   # no install step needed

@@ -2,6 +2,7 @@
 #include "channel.h"
 #include "config.h"
 #include "radio.h"
+#include "prometheus.h"
 #include "utils.h"
 
 #include <stdlib.h>
@@ -98,6 +99,7 @@ static void maybe_query_position(void)
     if (best_serial != 0) {
         ESP_LOGI(TAG, "Auto-querying position for channel '%s'", best_name);
         channel_send_cmd(best_serial, COSMO_BTN_REQUEST_POSITION, 0);
+        prometheus_inc_tx_auto();
     }
 }
 
