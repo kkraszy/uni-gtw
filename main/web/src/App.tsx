@@ -6,7 +6,7 @@ import { Console } from "./Console";
 import { Channels } from "./Channels";
 import { Channel } from "./channelTypes";
 import { About } from "./About";
-import { Settings } from "./Settings";
+import { Settings } from "./settings/Settings";
 import { Ota } from "./Ota";
 import { Tabs } from "./ui/Tabs";
 import { TopBar } from "./TopBar";

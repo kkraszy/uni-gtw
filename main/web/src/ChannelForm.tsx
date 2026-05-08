@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { X, Plus, Radio } from "lucide-preact";
 import { Button } from "./ui/Button";
+import { FieldLabel } from "./ui/FieldLabel";
 import { Channel, DeviceClass, DEVICE_CLASS_OPTIONS, toMqttName } from "./channelTypes";
 import { PacketInfo } from "./wsTypes";
 
@@ -93,9 +94,7 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
         {isEdit ? `Edit: ${channel!.name}` : "New Channel"}
       </p>
 
-      <label class="block text-zinc-500 text-[10px] uppercase tracking-wide mb-0.5">
-        Channel name
-      </label>
+      <FieldLabel>Channel name</FieldLabel>
       <input
         type="text"
         placeholder="Channel name"
@@ -106,7 +105,7 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
         class="w-full bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs mb-2 font-mono"
       />
 
-      <label class="block text-zinc-500 text-[10px] uppercase tracking-wide mb-0.5">Protocol</label>
+      <FieldLabel>Protocol</FieldLabel>
       <select
         value={proto}
         onChange={(e) => setProto((e.target as HTMLSelectElement).value as "1way" | "2way")}
@@ -116,9 +115,7 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
         <option value="2way">COSMO 2WAY</option>
       </select>
 
-      <label class="block text-zinc-500 text-[10px] uppercase tracking-wide mb-0.5">
-        Device class
-      </label>
+      <FieldLabel>Device class</FieldLabel>
       <select
         value={deviceClass}
         onChange={(e) => setDeviceClass((e.target as HTMLSelectElement).value as DeviceClass)}
@@ -131,9 +128,7 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
         ))}
       </select>
 
-      <label class="block text-zinc-500 text-[10px] uppercase tracking-wide mb-0.5">
-        MQTT name
-      </label>
+      <FieldLabel>MQTT name</FieldLabel>
       <input
         type="text"
         placeholder="mqtt_name"
@@ -167,9 +162,7 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
             Bidirectional feedback
           </label>
           <div class={!bidirFeedback ? "opacity-40 pointer-events-none" : ""}>
-            <label class="block text-zinc-500 text-[10px] uppercase tracking-wide mb-0.5">
-              Feedback timeout (s)
-            </label>
+            <FieldLabel>Feedback timeout (s)</FieldLabel>
             <input
               type="number"
               min={0}
@@ -189,9 +182,7 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
 
       {isEdit && (
         <div class="mb-2">
-          <label class="block text-zinc-500 text-[10px] uppercase tracking-wide mb-1">
-            External remotes
-          </label>
+          <FieldLabel>External remotes</FieldLabel>
 
           {externalRemotes.length > 0 && (
             <div class="flex flex-col gap-0.5 mb-1">
