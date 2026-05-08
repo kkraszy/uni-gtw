@@ -1,0 +1,385 @@
+.page {
+  background: #09090b;
+}
+
+.hero,
+.section {
+  position: relative;
+  z-index: 1;
+  width: min(1160px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: 3rem;
+  align-items: center;
+  padding: 5.5rem 0 3.5rem;
+}
+
+.heroCopy {
+  max-width: 620px;
+}
+
+.eyebrow,
+.sectionEyebrow {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #0dde72;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: #fafafa;
+}
+
+.heroDescription {
+  margin: 1.5rem 0 0;
+  font-size: 1.15rem;
+  line-height: 1.75;
+  color: #d4d4d8;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.primaryAction,
+.secondaryAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0.8rem 1.2rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease;
+}
+
+.primaryAction {
+  background: #213b8d;
+  color: #ffffff;
+}
+
+.primaryAction:hover {
+  background: #2d52c2;
+  color: #ffffff;
+}
+
+.secondaryAction {
+  border: 1px solid #3f3f46;
+  background: #18181b;
+  color: #fafafa;
+}
+
+.secondaryAction:hover,
+.gettingStartedCard:hover {
+  text-decoration: none;
+}
+
+.heroVisual {
+  display: flex;
+  justify-content: center;
+}
+
+.hardwareFrame {
+  position: relative;
+  width: min(100%, 500px);
+  padding: 1.25rem;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  background: #18181b;
+}
+
+.hardwareBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid #14532d;
+  background: rgba(20, 83, 45, 0.28);
+  color: #86efac;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.hardwareStage {
+  position: relative;
+  min-height: 360px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #111114;
+  border: 1px solid #27272a;
+}
+
+.hardwareStage::after {
+  content: "";
+  position: absolute;
+  inset: auto 1.5rem 1.5rem;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.deviceBoard,
+.deviceModule,
+.deviceAntenna,
+.deviceShadow {
+  position: absolute;
+}
+
+.deviceBoard {
+  left: 16%;
+  right: 14%;
+  bottom: 20%;
+  height: 130px;
+  border-radius: 8px;
+  background: #213b8d;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transform: rotate(-7deg);
+}
+
+.deviceBoard::before,
+.deviceBoard::after {
+  content: "";
+  position: absolute;
+  border-radius: 14px;
+}
+
+.deviceBoard::before {
+  top: 20px;
+  left: 24px;
+  width: 120px;
+  height: 74px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    152px 12px 0 0 rgba(255, 255, 255, 0.05),
+    196px 34px 0 -18px rgba(13, 222, 114, 0.9),
+    224px 34px 0 -18px rgba(13, 222, 114, 0.9),
+    252px 34px 0 -18px rgba(13, 222, 114, 0.9);
+}
+
+.deviceBoard::after {
+  left: 26px;
+  right: 26px;
+  bottom: 18px;
+  height: 16px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(212, 212, 216, 0.82) 0,
+    rgba(212, 212, 216, 0.82) 10px,
+    transparent 10px,
+    transparent 18px
+  );
+}
+
+.deviceModule {
+  top: 20%;
+  right: 18%;
+  width: 180px;
+  height: 100px;
+  border-radius: 8px;
+  background: #d4d4d8;
+  border: 1px solid #a1a1aa;
+  transform: rotate(8deg);
+}
+
+.deviceModule::before,
+.deviceModule::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+}
+
+.deviceModule::before {
+  top: 24px;
+  left: 22px;
+  width: 56px;
+  height: 56px;
+  background: #0dde72;
+}
+
+.deviceModule::after {
+  top: 38px;
+  right: 26px;
+  width: 68px;
+  height: 12px;
+  border-radius: 4px;
+  background: rgba(33, 59, 141, 0.3);
+}
+
+.deviceAntenna {
+  top: 13%;
+  left: 24%;
+  width: 3px;
+  height: 130px;
+  background: #71717a;
+  transform: rotate(18deg);
+  transform-origin: bottom center;
+}
+
+.deviceAntenna::after {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: -4px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #fafafa;
+}
+
+.deviceShadow {
+  display: none;
+}
+
+.hardwareHint {
+  margin: 1rem 0 0;
+  color: #a1a1aa;
+  font-size: 0.95rem;
+}
+
+.section {
+  padding: 2rem 0 5rem;
+}
+
+.sectionHeader {
+  max-width: 760px;
+  margin-bottom: 1.75rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: #fafafa;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.05;
+}
+
+.advantagesGrid,
+.gettingStartedGrid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.advantagesGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.infoCard,
+.gettingStartedCard {
+  padding: 1.5rem;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  background: #18181b;
+}
+
+.cardTitle {
+  margin: 0 0 0.8rem;
+  color: #fafafa;
+  font-size: 1.3rem;
+}
+
+.cardIconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 1rem;
+  border: 1px solid #3f3f46;
+  border-radius: 8px;
+  background: #27272a;
+  color: #a1a1aa;
+  flex-shrink: 0;
+}
+
+.cardText {
+  margin: 0;
+  color: #a1a1aa;
+  line-height: 1.7;
+}
+
+.gettingStartedGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.gettingStartedCard {
+  display: block;
+  text-decoration: none;
+  transition: border-color 140ms ease;
+}
+
+.gettingStartedCard:hover {
+  border-color: #4f7cff;
+}
+
+.cardAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1.25rem;
+  color: #7aa2ff;
+  font-weight: 600;
+}
+
+@media screen and (max-width: 996px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding-top: 4rem;
+  }
+
+  .advantagesGrid,
+  .gettingStartedGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .hardwareFrame {
+    max-width: 620px;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .hero,
+  .section {
+    width: min(100% - 1rem, 1160px);
+  }
+
+  .hero {
+    padding-top: 3rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .heroDescription {
+    font-size: 1rem;
+  }
+
+  .heroActions {
+    flex-direction: column;
+  }
+
+  .primaryAction,
+  .secondaryAction {
+    width: 100%;
+  }
+
+  .hardwareStage {
+    min-height: 290px;
+  }
+}

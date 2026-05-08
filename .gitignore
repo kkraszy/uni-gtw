@@ -48,6 +48,8 @@
 
 # Kernel Module Compile Results
 *.mod*
+# Do not ignore CSS Modules (e.g. index.module.css) used by frontend code
+!*.module.css
 *.cmd
 .tmp_versions/
 modules.order
