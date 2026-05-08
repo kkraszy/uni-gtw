@@ -202,7 +202,7 @@ static void cc1101_apply_config(void)
 
 /* ── radio_ops_t implementation ──────────────────────────────────────────── */
 
-static esp_err_t cc1101_ops_init(const struct radio_config_t *hw,
+static esp_err_t cc1101_ops_init(const struct hardware_config_t *hw,
                                  spi_host_device_t host)
 {
     s_miso_gpio = hw->gpio_miso;

@@ -5,14 +5,15 @@ import { SubSection } from "../ui/SubSection";
 import { SectionCard } from "../ui/SectionCard";
 import { Cpu, Lightbulb, Radio } from "lucide-preact";
 import { findGpioDuplicates, resolveEffectiveHardware } from "./types";
-import type { SettingsData, RadioConfig, HardwarePreset } from "./types";
+import type { SettingsData, HardwareConfig, HardwarePreset, HardwarePresetInfo } from "./types";
 
 interface Props {
   settings: SettingsData;
+  presets: HardwarePresetInfo[];
   onChange: (updated: SettingsData) => void;
 }
 
-const GPIO_FIELDS_BASE: { key: keyof RadioConfig; label: string }[] = [
+const GPIO_FIELDS_BASE: { key: keyof HardwareConfig; label: string }[] = [
   { key: "gpio_miso", label: "MISO" },
   { key: "gpio_mosi", label: "MOSI" },
   { key: "gpio_sck", label: "SCK" },
@@ -57,7 +58,7 @@ function GpioInput({
   );
 }
 
-export function HardwareSection({ settings, onChange }: Props) {
+export function HardwareSection({ settings, presets, onChange }: Props) {
   const radioSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -67,14 +68,19 @@ export function HardwareSection({ settings, onChange }: Props) {
     return () => window.removeEventListener("settings:scroll-radio", handler);
   }, []);
 
-  const effectiveHardware = resolveEffectiveHardware(settings);
-  const effectiveRadio = effectiveHardware.radio;
+  const effectiveHardware = resolveEffectiveHardware(settings, presets);
   const customHardware = settings.hardware_preset === "custom";
-  const gpioDupes = findGpioDuplicates(effectiveRadio);
-  const radioDisabled = !effectiveRadio.enabled;
+  const selectedPreset = customHardware
+    ? null
+    : (presets.find((preset) => preset.id === settings.hardware_preset) ?? null);
+  const gpioDupes = findGpioDuplicates(effectiveHardware);
+  const radioDisabled = !effectiveHardware.enabled;
 
-  const updateRadio = <K extends keyof RadioConfig>(key: K, value: RadioConfig[K]) => {
-    onChange({ ...settings, radio: { ...settings.radio, [key]: value } });
+  const updateHardware = <K extends keyof HardwareConfig>(key: K, value: HardwareConfig[K]) => {
+    onChange({
+      ...settings,
+      hardware: { ...settings.hardware, [key]: value },
+    });
   };
 
   return (
@@ -91,8 +97,35 @@ export function HardwareSection({ settings, onChange }: Props) {
           class="w-full bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs font-mono"
         >
           <option value="custom">Custom</option>
-          <option value="heltec_v4">Heltec V4</option>
+          {presets.map((preset) => (
+            <option key={preset.id} value={preset.id}>
+              {preset.name}
+            </option>
+          ))}
         </select>
+        {selectedPreset && (
+          <div class="mt-3 rounded border border-zinc-700 bg-zinc-900/60 px-3 py-2 text-xs text-zinc-300">
+            <p class="text-zinc-100 font-medium">{selectedPreset.description}</p>
+            <p class="mt-2 font-mono text-zinc-400">
+              {selectedPreset.hardware.type.toUpperCase()} | MISO{" "}
+              {selectedPreset.hardware.gpio_miso} | MOSI {selectedPreset.hardware.gpio_mosi} | SCK{" "}
+              {selectedPreset.hardware.gpio_sck} | CSN {selectedPreset.hardware.gpio_csn}
+            </p>
+            <p class="mt-1 font-mono text-zinc-400">
+              {selectedPreset.hardware.type === "sx1262" ? "DIO1" : "GDO0"}{" "}
+              {selectedPreset.hardware.gpio_gdo0}
+              {selectedPreset.hardware.type === "sx1262" && (
+                <>
+                  {" "}
+                  | RST {selectedPreset.hardware.gpio_rst} | BUSY{" "}
+                  {selectedPreset.hardware.gpio_busy}
+                </>
+              )}{" "}
+              | PA EN {selectedPreset.hardware.gpio_pa_enable} | LED{" "}
+              {selectedPreset.hardware.gpio_status_led}
+            </p>
+          </div>
+        )}
       </SubSection>
 
       {/* Radio */}
@@ -102,8 +135,8 @@ export function HardwareSection({ settings, onChange }: Props) {
             <label class="flex items-center gap-2 cursor-pointer select-none mb-3">
               <input
                 type="checkbox"
-                checked={settings.radio.enabled}
-                onChange={(e) => updateRadio("enabled", (e.target as HTMLInputElement).checked)}
+                checked={settings.hardware.enabled}
+                onChange={(e) => updateHardware("enabled", (e.target as HTMLInputElement).checked)}
                 class="w-4 h-4 accent-blue-500"
               />
               <span class="text-xs text-zinc-300">Enable radio</span>
@@ -119,10 +152,13 @@ export function HardwareSection({ settings, onChange }: Props) {
             <div>
               <label class="block mb-1 text-xs text-zinc-400">Radio type</label>
               <select
-                value={effectiveRadio.type}
+                value={effectiveHardware.type}
                 disabled={radioDisabled}
                 onChange={(e) =>
-                  updateRadio("type", (e.target as HTMLSelectElement).value as "cc1101" | "sx1262")
+                  updateHardware(
+                    "type",
+                    (e.target as HTMLSelectElement).value as "cc1101" | "sx1262",
+                  )
                 }
                 class={`bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs font-mono ${
                   radioDisabled ? "opacity-60" : ""
@@ -141,43 +177,43 @@ export function HardwareSection({ settings, onChange }: Props) {
                   <GpioInput
                     key={key}
                     label={label}
-                    value={effectiveRadio[key] as number}
+                    value={effectiveHardware[key] as number}
                     error={gpioDupes.has(key)}
                     disabled={radioDisabled}
-                    onChange={(v) => updateRadio(key, v)}
+                    onChange={(v) => updateHardware(key, v)}
                   />
                 ))}
                 <GpioInput
-                  label={effectiveRadio.type === "sx1262" ? "DIO1" : "GDO0"}
-                  value={effectiveRadio.gpio_gdo0}
+                  label={effectiveHardware.type === "sx1262" ? "DIO1" : "GDO0"}
+                  value={effectiveHardware.gpio_gdo0}
                   error={gpioDupes.has("gpio_gdo0")}
                   disabled={radioDisabled}
-                  onChange={(v) => updateRadio("gpio_gdo0", v)}
+                  onChange={(v) => updateHardware("gpio_gdo0", v)}
                 />
-                {effectiveRadio.type === "sx1262" && (
+                {effectiveHardware.type === "sx1262" && (
                   <>
                     <GpioInput
                       label="RST"
-                      value={effectiveRadio.gpio_rst}
+                      value={effectiveHardware.gpio_rst}
                       error={gpioDupes.has("gpio_rst")}
                       disabled={radioDisabled}
-                      onChange={(v) => updateRadio("gpio_rst", v)}
+                      onChange={(v) => updateHardware("gpio_rst", v)}
                     />
                     <GpioInput
                       label="BUSY"
-                      value={effectiveRadio.gpio_busy}
+                      value={effectiveHardware.gpio_busy}
                       error={gpioDupes.has("gpio_busy")}
                       disabled={radioDisabled}
-                      onChange={(v) => updateRadio("gpio_busy", v)}
+                      onChange={(v) => updateHardware("gpio_busy", v)}
                     />
                   </>
                 )}
                 <GpioInput
                   label="PA EN"
-                  value={effectiveRadio.gpio_pa_enable}
+                  value={effectiveHardware.gpio_pa_enable}
                   error={gpioDupes.has("gpio_pa_enable")}
                   disabled={radioDisabled}
-                  onChange={(v) => updateRadio("gpio_pa_enable", v)}
+                  onChange={(v) => updateHardware("gpio_pa_enable", v)}
                   min={-1}
                 />
                 {gpioDupes.size > 0 && (
@@ -191,13 +227,13 @@ export function HardwareSection({ settings, onChange }: Props) {
                 <label class="text-xs text-zinc-400 shrink-0">SPI clock</label>
                 <input
                   type="number"
-                  value={effectiveRadio.spi_freq_hz}
+                  value={effectiveHardware.spi_freq_hz}
                   min={100000}
                   max={10000000}
                   step={100000}
                   disabled={radioDisabled}
                   onInput={(e) =>
-                    updateRadio(
+                    updateHardware(
                       "spi_freq_hz",
                       Math.max(100000, parseInt((e.target as HTMLInputElement).value) || 500000),
                     )
@@ -226,10 +262,13 @@ export function HardwareSection({ settings, onChange }: Props) {
               onInput={(e) =>
                 onChange({
                   ...settings,
-                  gpio_status_led: Math.max(
-                    -1,
-                    Math.min(39, parseInt((e.target as HTMLInputElement).value) || -1),
-                  ),
+                  hardware: {
+                    ...settings.hardware,
+                    gpio_status_led: Math.max(
+                      -1,
+                      Math.min(39, parseInt((e.target as HTMLInputElement).value) || -1),
+                    ),
+                  },
                 })
               }
               class="w-20 bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs font-mono"

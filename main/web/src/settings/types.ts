@@ -8,7 +8,7 @@ export interface MqttConfig {
   mqtt_prefix: string;
 }
 
-export interface RadioConfig {
+export interface HardwareConfig {
   enabled: boolean;
   type: "cc1101" | "sx1262";
   gpio_miso: number;
@@ -20,45 +20,55 @@ export interface RadioConfig {
   gpio_busy: number;
   gpio_pa_enable: number;
   spi_freq_hz: number;
+  gpio_status_led: number;
 }
 
-export type HardwarePreset = "custom" | "heltec_v4";
+export type HardwarePreset =
+  | "custom"
+  | "alufers_esp_cc1101_board"
+  | "heltec_v4"
+  | "xiao_esp32s3_wio_sx1262";
+
+export interface HardwarePresetInfo {
+  id: Exclude<HardwarePreset, "custom">;
+  name: string;
+  description: string;
+  hardware: HardwareConfig;
+}
+
+export interface HardwarePresetsResponse {
+  presets: HardwarePresetInfo[];
+}
 
 export interface SettingsData {
   hostname: string;
   mqtt: MqttConfig;
-  radio: RadioConfig;
+  hardware: HardwareConfig;
   hardware_preset: HardwarePreset;
   position_status_query_interval_s: number;
-  gpio_status_led: number;
   web_password_enabled: boolean;
   web_password: string;
   language: "en" | "pl";
   prometheus_enable: boolean;
 }
 
-export interface EffectiveHardwareConfig {
-  radio: RadioConfig;
-  gpio_status_led: number;
-}
-
 export type SaveStatus = "idle" | "loading" | "saving" | "saved" | "rebooting" | "error";
 
 /** Returns the set of GPIO fields that share the same pin number. */
-export function findGpioDuplicates(radio: RadioConfig): Set<keyof RadioConfig> {
-  const fields: (keyof RadioConfig)[] = [
+export function findGpioDuplicates(hardware: HardwareConfig): Set<keyof HardwareConfig> {
+  const fields: (keyof HardwareConfig)[] = [
     "gpio_miso",
     "gpio_mosi",
     "gpio_sck",
     "gpio_csn",
     "gpio_gdo0",
     "gpio_pa_enable",
-    ...(radio.type === "sx1262" ? (["gpio_rst", "gpio_busy"] as (keyof RadioConfig)[]) : []),
+    ...(hardware.type === "sx1262" ? (["gpio_rst", "gpio_busy"] as (keyof HardwareConfig)[]) : []),
   ];
-  const seen = new Map<number, keyof RadioConfig>();
-  const dupes = new Set<keyof RadioConfig>();
+  const seen = new Map<number, keyof HardwareConfig>();
+  const dupes = new Set<keyof HardwareConfig>();
   for (const f of fields) {
-    const v = radio[f] as number;
+    const v = hardware[f] as number;
     if (v < 0) continue; // -1 means disabled/not assigned — never a conflict
     if (seen.has(v)) {
       dupes.add(f);
@@ -70,29 +80,15 @@ export function findGpioDuplicates(radio: RadioConfig): Set<keyof RadioConfig> {
   return dupes;
 }
 
-export function resolveEffectiveHardware(settings: SettingsData): EffectiveHardwareConfig {
-  if (settings.hardware_preset === "heltec_v4") {
-    return {
-      radio: {
-        ...settings.radio,
-        enabled: true,
-        type: "sx1262",
-        gpio_miso: 11,
-        gpio_mosi: 10,
-        gpio_sck: 9,
-        gpio_csn: 8,
-        gpio_gdo0: 14,
-        gpio_rst: 12,
-        gpio_busy: 13,
-        gpio_pa_enable: 2,
-        spi_freq_hz: 500000,
-      },
-      gpio_status_led: 35,
-    };
+export function resolveEffectiveHardware(
+  settings: SettingsData,
+  presets: HardwarePresetInfo[],
+): HardwareConfig {
+  if (settings.hardware_preset === "custom") {
+    return settings.hardware;
   }
 
-  return {
-    radio: settings.radio,
-    gpio_status_led: settings.gpio_status_led,
-  };
+  return (
+    presets.find((preset) => preset.id === settings.hardware_preset)?.hardware ?? settings.hardware
+  );
 }

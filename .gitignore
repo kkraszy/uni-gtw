@@ -68,3 +68,5 @@ managed_components
 main/web/dist
 main/web/node_modules
 __cmake_systeminformation
+
+.vscode

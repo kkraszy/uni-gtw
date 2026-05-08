@@ -3,8 +3,8 @@
 /**
  * Status LED driver — LEDC-based breathing/pulsing indicator.
  *
- * GPIO and enable/disable are read from gateway_config_t.gpio_status_led.
- * gpio_status_led == -1 means "no LED / disabled" — all calls are no-ops.
+ * GPIO and enable/disable are read from gateway_config_t.hardware.gpio_status_led.
+ * hardware.gpio_status_led == -1 means "no LED / disabled" — all calls are no-ops.
  *
  * Behaviour:
  *   - Not connected to WiFi  → breathe slowly (3 s period)

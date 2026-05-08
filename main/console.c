@@ -371,63 +371,67 @@ static int do_config_set(int argc, char **argv) {
   bool need_led = false;
 
   config_lock();
-  if (strcmp(name, "gpio_status_led") == 0) {
-    g_config.gpio_status_led = (int)strtol(val, NULL, 0);
+  if (strcmp(name, "hardware.gpio_status_led") == 0) {
+    g_config.hardware.gpio_status_led = (int)strtol(val, NULL, 0);
     need_led = true;
   } else if (strcmp(name, "hardware_preset") == 0) {
-    if (strcmp(val, "heltec_v4") == 0) {
+    if (strcmp(val, "alufers_esp_cc1101_board") == 0) {
+      g_config.hardware_preset = hardware_preset_t_alufers_esp_cc1101_board;
+    } else if (strcmp(val, "heltec_v4") == 0) {
       g_config.hardware_preset = hardware_preset_t_heltec_v4;
+    } else if (strcmp(val, "xiao_esp32s3_wio_sx1262") == 0) {
+      g_config.hardware_preset = hardware_preset_t_xiao_esp32s3_wio_sx1262;
     } else {
       g_config.hardware_preset = hardware_preset_t_custom;
     }
     need_radio = true;
     need_led = true;
-  } else if (strcmp(name, "radio.enabled") == 0) {
-    g_config.radio.enabled =
+  } else if (strcmp(name, "hardware.enabled") == 0) {
+    g_config.hardware.enabled =
         (strcmp(val, "true") == 0 || strcmp(val, "1") == 0);
     need_radio = true;
-  } else if (strcmp(name, "radio.gpio_miso") == 0) {
-    g_config.radio.gpio_miso = (int)strtol(val, NULL, 0);
+  } else if (strcmp(name, "hardware.gpio_miso") == 0) {
+    g_config.hardware.gpio_miso = (int)strtol(val, NULL, 0);
     need_radio = true;
-  } else if (strcmp(name, "radio.gpio_mosi") == 0) {
-    g_config.radio.gpio_mosi = (int)strtol(val, NULL, 0);
+  } else if (strcmp(name, "hardware.gpio_mosi") == 0) {
+    g_config.hardware.gpio_mosi = (int)strtol(val, NULL, 0);
     need_radio = true;
-  } else if (strcmp(name, "radio.gpio_sck") == 0) {
-    g_config.radio.gpio_sck = (int)strtol(val, NULL, 0);
+  } else if (strcmp(name, "hardware.gpio_sck") == 0) {
+    g_config.hardware.gpio_sck = (int)strtol(val, NULL, 0);
     need_radio = true;
-  } else if (strcmp(name, "radio.gpio_csn") == 0) {
-    g_config.radio.gpio_csn = (int)strtol(val, NULL, 0);
+  } else if (strcmp(name, "hardware.gpio_csn") == 0) {
+    g_config.hardware.gpio_csn = (int)strtol(val, NULL, 0);
     need_radio = true;
-  } else if (strcmp(name, "radio.gpio_gdo0") == 0) {
-    g_config.radio.gpio_gdo0 = (int)strtol(val, NULL, 0);
+  } else if (strcmp(name, "hardware.gpio_gdo0") == 0) {
+    g_config.hardware.gpio_gdo0 = (int)strtol(val, NULL, 0);
     need_radio = true;
-  } else if (strcmp(name, "radio.spi_freq_hz") == 0) {
-    g_config.radio.spi_freq_hz = (int)strtol(val, NULL, 0);
+  } else if (strcmp(name, "hardware.spi_freq_hz") == 0) {
+    g_config.hardware.spi_freq_hz = (int)strtol(val, NULL, 0);
     need_radio = true;
-  } else if (strcmp(name, "radio.type") == 0) {
+  } else if (strcmp(name, "hardware.type") == 0) {
     if (strcmp(val, "sx1262") == 0) {
-      g_config.radio.type = radio_type_t_sx1262;
+      g_config.hardware.type = radio_type_t_sx1262;
     } else {
-      g_config.radio.type = radio_type_t_cc1101;
+      g_config.hardware.type = radio_type_t_cc1101;
     }
     need_radio = true;
-  } else if (strcmp(name, "radio.gpio_rst") == 0) {
-    g_config.radio.gpio_rst = (int)strtol(val, NULL, 0);
+  } else if (strcmp(name, "hardware.gpio_rst") == 0) {
+    g_config.hardware.gpio_rst = (int)strtol(val, NULL, 0);
     need_radio = true;
-  } else if (strcmp(name, "radio.gpio_busy") == 0) {
-    g_config.radio.gpio_busy = (int)strtol(val, NULL, 0);
+  } else if (strcmp(name, "hardware.gpio_busy") == 0) {
+    g_config.hardware.gpio_busy = (int)strtol(val, NULL, 0);
     need_radio = true;
-  } else if (strcmp(name, "radio.gpio_pa_enable") == 0) {
-    g_config.radio.gpio_pa_enable = (int)strtol(val, NULL, 0);
+  } else if (strcmp(name, "hardware.gpio_pa_enable") == 0) {
+    g_config.hardware.gpio_pa_enable = (int)strtol(val, NULL, 0);
     need_radio = true;
   } else {
     config_unlock();
     printf("Unknown setting: %s\n", name);
-    printf("Valid: gpio_status_led, hardware_preset, radio.enabled, radio.type,\n"
-           "       radio.gpio_miso, radio.gpio_mosi, radio.gpio_sck,\n"
-           "       radio.gpio_csn, radio.gpio_gdo0, radio.spi_freq_hz,\n"
-           "       radio.gpio_rst (SX1262), radio.gpio_busy (SX1262),\n"
-           "       radio.gpio_pa_enable\n");
+        printf("Valid: hardware.gpio_status_led, hardware_preset, hardware.enabled,\n"
+          "       hardware.type, hardware.gpio_miso, hardware.gpio_mosi,\n"
+          "       hardware.gpio_sck, hardware.gpio_csn, hardware.gpio_gdo0,\n"
+          "       hardware.spi_freq_hz, hardware.gpio_rst (SX1262),\n"
+          "       hardware.gpio_busy (SX1262), hardware.gpio_pa_enable\n");
     return 1;
   }
   config_unlock();
@@ -443,14 +447,14 @@ static int do_config_set(int argc, char **argv) {
 
 static void register_config_set(void) {
   config_set_args.name =
-      arg_str1(NULL, NULL, "<name>", "Setting name (e.g. radio.enabled)");
+      arg_str1(NULL, NULL, "<name>", "Setting name (e.g. hardware.enabled)");
   config_set_args.value = arg_str1(NULL, NULL, "<value>", "New value");
   config_set_args.end = arg_end(2);
 
   const esp_console_cmd_t cmd = {
       .command = "config_set",
       .help = "Set a runtime config value",
-      .hint = " <gpio_status_led|hardware_preset|radio.enabled|radio.type|radio.gpio_*|radio.spi_freq_hz> "
+      .hint = " <hardware.gpio_status_led|hardware_preset|hardware.enabled|hardware.type|hardware.gpio_*|hardware.spi_freq_hz> "
               "<value>",
       .func = &do_config_set,
       .argtable = &config_set_args,

@@ -7,6 +7,7 @@
 #include "mqtt.h"
 #include "prometheus.h"
 #include "status_led.h"
+#include "hardware_presets.h"
 #include "utils.h"
 #include "wifi_manager.h"
 
@@ -608,6 +609,56 @@ static esp_err_t settings_get_handler(httpd_req_t *req)
     return send_settings_json(req);
 }
 
+static const char *hardware_preset_id_to_str(enum hardware_preset_t preset)
+{
+    switch (preset) {
+    case hardware_preset_t_alufers_esp_cc1101_board:
+        return "alufers_esp_cc1101_board";
+    case hardware_preset_t_heltec_v4:
+        return "heltec_v4";
+    case hardware_preset_t_xiao_esp32s3_wio_sx1262:
+        return "xiao_esp32s3_wio_sx1262";
+    case hardware_preset_t_custom:
+    default:
+        return "custom";
+    }
+}
+
+static esp_err_t hardware_presets_get_handler(httpd_req_t *req)
+{
+    size_t count = 0;
+    const hardware_preset_def_t *defs = hardware_presets_get_all(&count);
+
+    struct hardware_presets_list_t list;
+    hardware_presets_list_t_init(&list);
+
+    if (count > 0) {
+        list.presets = calloc(count, sizeof(*list.presets));
+        if (!list.presets) {
+            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "OOM");
+            return ESP_OK;
+        }
+        list.presets_len = (int)count;
+
+        for (size_t i = 0; i < count; i++) {
+            hardware_preset_info_t_init(&list.presets[i]);
+            list.presets[i].id = sstr(hardware_preset_id_to_str(defs[i].id));
+            list.presets[i].name = sstr(defs[i].name);
+            list.presets[i].description = sstr(defs[i].description);
+            list.presets[i].hardware = defs[i].hardware;
+        }
+    }
+
+    sstr_t json = sstr_new();
+    json_marshal_hardware_presets_list_t(&list, json);
+    hardware_presets_list_t_clear(&list);
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, sstr_cstr(json), (ssize_t)sstr_length(json));
+    sstr_free(json);
+    return ESP_OK;
+}
+
 static void apply_settings_from_buf(const char *buf, int len)
 {
     /* Use json_unmarshal_selected to update only the non-channel config fields.
@@ -615,10 +666,9 @@ static void apply_settings_from_buf(const char *buf, int len)
     uint64_t mask[gateway_config_t_FIELD_MASK_WORD_COUNT] = {0};
     JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_hostname);
     JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_mqtt);
-    JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_radio);
+    JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_hardware);
     JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_hardware_preset);
     JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_position_status_query_interval_s);
-    JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_gpio_status_led);
     JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_web_password_enabled);
     JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_web_password);
     JSON_GEN_C_FIELD_MASK_SET(mask, gateway_config_t_FIELD_language);
@@ -853,7 +903,7 @@ void webserver_start(void)
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.lru_purge_enable  = true;
-    config.max_uri_handlers  = 14;
+    config.max_uri_handlers  = 15;
     config.stack_size        = 6500;
 
     ESP_LOGI(TAG, "Starting HTTP server on port %d", config.server_port);
@@ -889,6 +939,11 @@ void webserver_start(void)
         .method = HTTP_POST,
         .handler = settings_post_handler,
     };
+    static const httpd_uri_t uri_hardware_presets_get = {
+        .uri    = "/api/hardware_presets",
+        .method = HTTP_GET,
+        .handler = hardware_presets_get_handler,
+    };
     static const httpd_uri_t uri_restore_post = {
         .uri    = "/api/restore",
         .method = HTTP_POST,
@@ -912,6 +967,7 @@ void webserver_start(void)
     httpd_register_uri_handler(s_server, &uri_ws);
     httpd_register_uri_handler(s_server, &uri_settings_get);
     httpd_register_uri_handler(s_server, &uri_settings_post);
+    httpd_register_uri_handler(s_server, &uri_hardware_presets_get);
     httpd_register_uri_handler(s_server, &uri_restore_post);
     httpd_register_uri_handler(s_server, &uri_backup_get);
     httpd_register_uri_handler(s_server, &uri_info_get);

@@ -260,7 +260,7 @@ void status_led_init(void)
     hardware_presets_resolve(&resolved, &g_config);
     config_unlock();
 
-    int gpio = resolved.gpio_status_led;
+    int gpio = resolved.hardware.gpio_status_led;
 
     if (gpio >= 0) {
         led_hw_init(gpio);
@@ -277,7 +277,7 @@ void status_led_apply_config(void)
     hardware_presets_resolve(&resolved, &g_config);
     config_unlock();
 
-    int new_gpio = resolved.gpio_status_led;
+    int new_gpio = resolved.hardware.gpio_status_led;
 
     if (new_gpio == s_gpio) return;
 

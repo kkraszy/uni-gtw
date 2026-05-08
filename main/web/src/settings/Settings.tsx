@@ -8,26 +8,38 @@ import { NetworkSection } from "./NetworkSection";
 import { BehaviourSection } from "./BehaviourSection";
 import { BackupRestore } from "./BackupRestore";
 import { findGpioDuplicates, resolveEffectiveHardware } from "./types";
-import type { SettingsData, SaveStatus } from "./types";
+import type {
+  HardwarePresetsResponse,
+  HardwarePresetInfo,
+  SettingsData,
+  SaveStatus,
+} from "./types";
 
 export function Settings() {
   const { password } = useContext(AuthContext);
   const [draft, setDraft] = useState<SettingsData | null>(null);
+  const [presets, setPresets] = useState<HardwarePresetInfo[]>([]);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("loading");
 
   const authHeaders: Record<string, string> = password ? { "X-Auth": password } : {};
 
   useEffect(() => {
-    fetch("/api/settings", { headers: authHeaders })
-      .then((r) => {
+    Promise.all([
+      fetch("/api/settings", { headers: authHeaders }).then((r) => {
         if (!r.ok) throw new Error("HTTP " + r.status);
         return r.json() as Promise<SettingsData>;
-      })
-      .then((data) => {
+      }),
+      fetch("/api/hardware_presets").then((r) => {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json() as Promise<HardwarePresetsResponse>;
+      }),
+    ])
+      .then(([data, presetResponse]) => {
         if (data.web_password_enabled && !data.web_password) {
           data.web_password = "***UNCHANGED***";
         }
         setDraft(data);
+        setPresets(presetResponse.presets);
         setSaveStatus("idle");
       })
       .catch(() => setSaveStatus("error"));
@@ -36,7 +48,7 @@ export function Settings() {
 
   const save = () => {
     if (!draft) return;
-    if (findGpioDuplicates(resolveEffectiveHardware(draft).radio).size > 0) return;
+    if (findGpioDuplicates(resolveEffectiveHardware(draft, presets)).size > 0) return;
     setSaveStatus("saving");
     fetch("/api/settings", {
       method: "POST",
@@ -67,13 +79,13 @@ export function Settings() {
     );
   }
 
-  const hasErrors = findGpioDuplicates(resolveEffectiveHardware(draft).radio).size > 0;
+  const hasErrors = findGpioDuplicates(resolveEffectiveHardware(draft, presets)).size > 0;
 
   return (
     <div class="p-4 overflow-y-auto h-full">
       <div class="max-w-lg mx-auto">
         <UiSection settings={draft} onChange={setDraft} />
-        <HardwareSection settings={draft} onChange={setDraft} />
+        <HardwareSection settings={draft} presets={presets} onChange={setDraft} />
         <NetworkSection settings={draft} onChange={setDraft} />
         <BehaviourSection settings={draft} onChange={setDraft} />
 

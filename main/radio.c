@@ -50,10 +50,10 @@ static radio_state_t     s_radio_state       = RADIO_STATE_NOT_CONFIGURED;
 static const radio_ops_t *s_ops = NULL;
 
 /* Snapshot of the config that is currently running in hardware */
-static struct radio_config_t s_active_cfg;
+static struct hardware_config_t s_active_cfg;
 
-static bool radio_config_equal(const struct radio_config_t *lhs,
-                               const struct radio_config_t *rhs)
+static bool hardware_config_equal(const struct hardware_config_t *lhs,
+                                  const struct hardware_config_t *rhs)
 {
     return lhs->enabled == rhs->enabled &&
            lhs->type == rhs->type &&
@@ -245,11 +245,11 @@ static void radio_do_deinit(void)
 
     s_initialized = false;
     s_radio_state = RADIO_STATE_NOT_CONFIGURED;
-    radio_config_t_clear(&s_active_cfg);
+    hardware_config_t_clear(&s_active_cfg);
     ESP_LOGI(TAG, "Radio deinitialized");
 }
 
-static esp_err_t radio_do_init(const struct radio_config_t *hw)
+static esp_err_t radio_do_init(const struct hardware_config_t *hw)
 {
     if (!hw->enabled) {
         ESP_LOGI(TAG, "Radio not enabled in config, skipping init");
@@ -310,7 +310,7 @@ static esp_err_t radio_do_init(const struct radio_config_t *hw)
     gpio_isr_handler_add(s_active_irq_gpio, radio_irq_isr, NULL);
 
     xTaskCreate(radio_task, "radio", 4096, NULL, 10, &s_radio_task_handle);
-    radio_config_t_copy(&s_active_cfg, hw);
+    hardware_config_t_copy(&s_active_cfg, hw);
     s_initialized   = true;
     s_radio_state   = RADIO_STATE_OK;
     ESP_LOGI(TAG, "Radio initialised, entering RX");
@@ -352,7 +352,7 @@ esp_err_t radio_init(void)
     config_lock();
     hardware_presets_resolve(&resolved, &g_config);
     config_unlock();
-    return radio_do_init(&resolved.radio);
+    return radio_do_init(&resolved.hardware);
 }
 
 esp_err_t radio_apply_config(void)
@@ -362,14 +362,14 @@ esp_err_t radio_apply_config(void)
     hardware_presets_resolve(&resolved, &g_config);
     config_unlock();
 
-    if (radio_config_equal(&s_active_cfg, &resolved.radio)) {
+    if (hardware_config_equal(&s_active_cfg, &resolved.hardware)) {
         ESP_LOGI(TAG, "Radio config unchanged, skipping reinit");
         return s_initialized ? ESP_OK : ESP_ERR_NOT_SUPPORTED;
     }
 
     ESP_LOGI(TAG, "Radio config changed, reinitializing");
     radio_do_deinit();
-    return radio_do_init(&resolved.radio);
+    return radio_do_init(&resolved.hardware);
 }
 
 esp_err_t radio_deinit(void)

@@ -20,7 +20,7 @@ typedef enum {
 typedef struct radio_ops_s {
     /* Initialise the driver.  The SPI bus identified by `host` has already
      * been initialised by radio.c.  The driver adds its own device. */
-    esp_err_t       (*init)(const struct radio_config_t *cfg, spi_host_device_t host);
+    esp_err_t       (*init)(const struct hardware_config_t *cfg, spi_host_device_t host);
 
     /* Release the SPI device (spi_bus_remove_device).  radio.c calls
      * spi_bus_free() afterwards. */

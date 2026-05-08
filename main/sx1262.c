@@ -164,7 +164,7 @@ static void sx1262_set_freq(uint32_t freq_reg) {
 
 /* ── radio_ops_t implementation ──────────────────────────────────────────── */
 
-static esp_err_t sx1262_ops_init(const struct radio_config_t *hw,
+static esp_err_t sx1262_ops_init(const struct hardware_config_t *hw,
                                  spi_host_device_t host) {
   s_spi_mutex = xSemaphoreCreateMutex();
   s_hop_ch    = 0;
