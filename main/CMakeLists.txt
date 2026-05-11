@@ -44,6 +44,7 @@ idf_component_register(
         "background_worker.c"
         "mqtt.c"
         "status_led.c"
+        "oled.c"
         "utils.c"
         "console.c"
         "ota.c"
@@ -58,9 +59,11 @@ idf_component_register(
         esp_netif
         esp_driver_spi
         esp_driver_gpio
+        esp_driver_i2c
         esp_driver_ledc
         esp_hw_support
         esp_timer
+        esp_ssd1306
         cosmo
         esp_littlefs
         lwip

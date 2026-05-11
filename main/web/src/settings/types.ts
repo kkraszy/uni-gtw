@@ -11,11 +11,16 @@ export interface MqttConfig {
 export interface HardwareConfig {
   enabled: boolean;
   type: "cc1101" | "sx1262";
+  oled_enabled: boolean;
   gpio_miso: number;
   gpio_mosi: number;
   gpio_sck: number;
   gpio_csn: number;
   gpio_gdo0: number;
+  gpio_i2c_sda: number;
+  gpio_i2c_scl: number;
+  gpio_oled_power: number;
+  gpio_oled_reset: number;
   gpio_rst: number;
   gpio_busy: number;
   gpio_pa_enable: number;
@@ -63,7 +68,16 @@ export function findGpioDuplicates(hardware: HardwareConfig): Set<keyof Hardware
     "gpio_csn",
     "gpio_gdo0",
     "gpio_pa_enable",
+    "gpio_status_led",
     ...(hardware.type === "sx1262" ? (["gpio_rst", "gpio_busy"] as (keyof HardwareConfig)[]) : []),
+    ...(hardware.oled_enabled
+      ? ([
+          "gpio_i2c_sda",
+          "gpio_i2c_scl",
+          "gpio_oled_power",
+          "gpio_oled_reset",
+        ] as (keyof HardwareConfig)[])
+      : []),
   ];
   const seen = new Map<number, keyof HardwareConfig>();
   const dupes = new Set<keyof HardwareConfig>();

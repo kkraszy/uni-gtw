@@ -120,11 +120,16 @@ enum hardware_preset_t {
 struct hardware_config_t {
     bool enabled;
     radio_type_t type;
+    bool oled_enabled;
     int gpio_miso;
     int gpio_mosi;
     int gpio_sck;
     int gpio_csn;
     int gpio_gdo0;        // CC1101: GDO0 IRQ; SX1262: DIO1 IRQ
+    int gpio_i2c_sda;
+    int gpio_i2c_scl;
+    int gpio_oled_power;  // Optional OLED power-enable pin (-1 to disable)
+    int gpio_oled_reset;  // Optional SSD1306 reset pin (-1 to disable)
     int gpio_rst;         // SX1262 RST (-1 for CC1101)
     int gpio_busy;        // SX1262 BUSY (-1 for CC1101)
     int gpio_pa_enable;   // External PA enable output (-1 to disable)

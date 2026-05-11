@@ -3,7 +3,7 @@ import { Alert } from "../ui/Alert";
 import { Hint } from "../ui/Hint";
 import { SubSection } from "../ui/SubSection";
 import { SectionCard } from "../ui/SectionCard";
-import { Cpu, Lightbulb, Radio } from "lucide-preact";
+import { Cpu, Lightbulb, Monitor, Radio } from "lucide-preact";
 import { findGpioDuplicates, resolveEffectiveHardware } from "./types";
 import type { SettingsData, HardwareConfig, HardwarePreset, HardwarePresetInfo } from "./types";
 
@@ -123,6 +123,11 @@ export function HardwareSection({ settings, presets, onChange }: Props) {
               )}{" "}
               | PA EN {selectedPreset.hardware.gpio_pa_enable} | LED{" "}
               {selectedPreset.hardware.gpio_status_led}
+            </p>
+            <p class="mt-1 font-mono text-zinc-400">
+              {selectedPreset.hardware.oled_enabled
+                ? `OLED SDA ${selectedPreset.hardware.gpio_i2c_sda} | SCL ${selectedPreset.hardware.gpio_i2c_scl} | PWR ${selectedPreset.hardware.gpio_oled_power} | RST ${selectedPreset.hardware.gpio_oled_reset}`
+                : "OLED disabled"}
             </p>
           </div>
         )}
@@ -276,6 +281,61 @@ export function HardwareSection({ settings, presets, onChange }: Props) {
             {effectiveHardware.gpio_status_led < 0 && (
               <span class="text-zinc-500 text-xs">disabled</span>
             )}
+          </div>
+        </SubSection>
+      )}
+
+      {customHardware && (
+        <SubSection icon={Monitor} title="OLED">
+          <label class="flex items-center gap-2 cursor-pointer select-none mb-3">
+            <input
+              type="checkbox"
+              checked={settings.hardware.oled_enabled}
+              onChange={(e) =>
+                updateHardware("oled_enabled", (e.target as HTMLInputElement).checked)
+              }
+              class="w-4 h-4 accent-blue-500"
+            />
+            <span class="text-xs text-zinc-300">Enable SSD1306 OLED</span>
+          </label>
+
+          <Hint>The OLED uses I2C. Set the SDA and SCL GPIOs, plus an optional reset pin.</Hint>
+
+          <div
+            class={!effectiveHardware.oled_enabled ? "opacity-40 pointer-events-none mt-2" : "mt-2"}
+          >
+            <div class="flex flex-col gap-2">
+              <GpioInput
+                label="SDA"
+                value={effectiveHardware.gpio_i2c_sda}
+                error={gpioDupes.has("gpio_i2c_sda")}
+                disabled={!effectiveHardware.oled_enabled}
+                onChange={(v) => updateHardware("gpio_i2c_sda", v)}
+              />
+              <GpioInput
+                label="SCL"
+                value={effectiveHardware.gpio_i2c_scl}
+                error={gpioDupes.has("gpio_i2c_scl")}
+                disabled={!effectiveHardware.oled_enabled}
+                onChange={(v) => updateHardware("gpio_i2c_scl", v)}
+              />
+              <GpioInput
+                label="PWR"
+                value={effectiveHardware.gpio_oled_power}
+                error={gpioDupes.has("gpio_oled_power")}
+                disabled={!effectiveHardware.oled_enabled}
+                onChange={(v) => updateHardware("gpio_oled_power", v)}
+                min={-1}
+              />
+              <GpioInput
+                label="RST"
+                value={effectiveHardware.gpio_oled_reset}
+                error={gpioDupes.has("gpio_oled_reset")}
+                disabled={!effectiveHardware.oled_enabled}
+                onChange={(v) => updateHardware("gpio_oled_reset", v)}
+                min={-1}
+              />
+            </div>
           </div>
         </SubSection>
       )}

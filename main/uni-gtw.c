@@ -12,6 +12,7 @@
 #include "console.h"
 #include "esp_littlefs.h"
 #include "mqtt.h"
+#include "oled.h"
 #include "ota.h"
 #include "radio.h"
 #include "status_led.h"
@@ -62,6 +63,7 @@ void app_main(void)
 
     /* Status LED — must be after event loop, before wifi_manager_init */
     status_led_init();
+    oled_init();
 
     webserver_early_init();
     channel_init();
@@ -93,6 +95,8 @@ void app_main(void)
 
     /* MQTT init */
     mqtt_init();
+
+    oled_wake_boot_screen();
 
     webserver_start_status_timer();
 

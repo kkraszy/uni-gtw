@@ -5,6 +5,7 @@
 #include "radio.h"
 #include "config.h"
 #include "mqtt.h"
+#include "oled.h"
 #include "prometheus.h"
 #include "status_led.h"
 #include "hardware_presets.h"
@@ -744,6 +745,9 @@ static void apply_settings_from_buf(const char *buf, int len)
 
     /* Apply status LED */
     status_led_apply_config();
+
+    /* Apply OLED */
+    oled_apply_config();
 }
 
 static esp_err_t settings_post_handler(httpd_req_t *req)

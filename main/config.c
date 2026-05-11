@@ -111,6 +111,11 @@ void config_init(void)
     g_config.hardware_preset                 = hardware_preset_t_custom;
     g_config.position_status_query_interval_s = 60;
     g_config.hardware.gpio_status_led        = -1;
+    g_config.hardware.oled_enabled           = 0;
+    g_config.hardware.gpio_i2c_sda           = -1;
+    g_config.hardware.gpio_i2c_scl           = -1;
+    g_config.hardware.gpio_oled_power        = -1;
+    g_config.hardware.gpio_oled_reset        = -1;
 
     g_config.language             = language_t_en;
     g_config.web_password_enabled = 0;
