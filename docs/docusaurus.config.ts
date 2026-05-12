@@ -37,7 +37,10 @@ const config: Config = {
   },
 
   plugins: [firmwareReleasesPlugin as unknown as PluginModule],
-
+  markdown: {
+    mermaid: true,
+  },
+  themes: ["@docusaurus/theme-mermaid"],
   presets: [
     [
       "classic",
