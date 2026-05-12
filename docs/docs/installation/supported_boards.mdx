@@ -9,25 +9,73 @@ In principle uni-gtw needs to do two things: communicate over Wi-Fi with your lo
 - An ESP32 series microcontroller (ESP32, ESP32-C3)
 - A TI [CC1101](https://www.ti.com/lit/ds/symlink/cc1101.pdf) radio transceiver or a Semtech [SX1262](https://www.semtech.com/products/wireless-rf/lora-connect/sx1262) 
 
-The microcontroller communicates with the radio chip using SPI. For a DIY-friendly build it's best to grab both of those in a form of devkit/module, as they contain all the necessary support components to run both of those. 
+The microcontroller communicates with the radio chip using SPI. For a DIY-friendly build it's best to grab both of those in a form of devkit/module, as they contain all the necessary support components to run them.
+
+:::info
+
+The links to the products in this section are affiliate links. If you purchase a product through those links, I might receive a small commission at no extra cost to you. I also ask you to disable your adblock/Brave shields before clicking those links so that the affiliate code is properly registered. Thanks!
+
+:::
+
+The boards listed below have been tested by the author of the project and are known to be working. All of the commercially available boards are SX1262 based, which is mainly used for LoRa, but the chip can also utilize the FSK modulation (used by uni-gtw). Hardware presets are also available in the firmware for those boards, so you don't need to set GPIO pins manually.
 
 
+## XIAO ESP32S3 + Wio-SX1262
+
+<img src={require('/img/xiao_esp32c3.png').default} alt="Image of the XIAO ESP32S3 + Wio-SX1262"  style={{filter: "drop-shadow(0px 0px 8px #eeeeee88)"}} />
+
+The cheapest pre-made board that can be bought off-the-shelf. 3D printing an enclosure is recommended: [see this Printables model](https://www.printables.com/model/1422893-xiao-nrf52840-wio-sx1262-kit-case-for-meshtastic-a).
+
+MCU: ESP32-S3
+Radio: SX1262
+
+### Purchase
+
+- [allegro.pl](https://allegro.pl/oferta/zestaw-xiao-esp32-s3-wio-sx1262-do-meshtastic-i-lora-lorawan-17988423868?utm_medium=afiliacja&utm_source=ctr_2&utm_campaign=027c0020-ff4d-4700-a094-4849a85cd99b&utm_content=cea93db413a8#)
+- [allegro.pl, version with enclosure and SMA antenna](https://allegro.pl/oferta/zestaw-xiao-esp32s3-i-lora-wio-sx1262-z-obudowa-do-meshtastic-meshcore-18460811174?utm_medium=afiliacja&utm_source=ctr_2&utm_campaign=027c0020-ff4d-4700-a094-4849a85cd99b&utm_content=efc3e307ac5d#0)
+
+
+:::warning
+
+There are also nrf52840 based versions of the XIAO + Wio-SX1262 board, but those won't work with uni-gtw, as they don't support Wi-Fi. Make sure to get the ESP32-S3 version.
+:::
 
 ## Heltec WiFi LoRa 32 V4
+
+A more expensive board. It has some features (OLED screen, battery charger), which are useless for uni-gtw. Nevertheless it has been tested and a hardware preset is available for it in the firmware, so you can use it if you have one lying around.
 
 <img src={require('/img/heltec_v4.png').default} alt="Image of the Heltec WiFi LoRa 32 V4"  style={{filter: "drop-shadow(0px 0px 8px #eeeeee88)"}} />
 
 MCU: ESP32-S3
 Radio: SX1262
 
-## XIAO ESP32S3 + Wio-SX1262
 
+### Purchase
 
-<img src={require('/img/xiao_esp32c3.png').default} alt="Image of the XIAO ESP32S3 + Wio-SX1262"  style={{filter: "drop-shadow(0px 0px 8px #eeeeee88)"}} />
-
-MCU: ESP32-S3
-Radio: SX1262
+- [allegro.pl](https://allegro.pl/oferta/modul-heltec-v4-wifi-esp32-s3-oled-lora-868mhz-28dbm-do-meshtastic-meshcore-18282211463?utm_medium=afiliacja&utm_source=ctr_2&utm_campaign=027c0020-ff4d-4700-a094-4849a85cd99b&utm_content=cb0e7a3f0080#)
 
 ## DIY Example 1: ESP32 DEVKIT V1 + no-name 868 Mhz CC1101 module
 
-TODO: description, photo
+
+<img src={require('/img/esp_32_diy_example.png').default} alt="Image of a DIY built gateway with an ESP32 devkit and CC1101 module soldered together with colored wires."  style={{filter: "drop-shadow(0px 0px 8px #eeeeee88)", width: '70%'}} />
+
+Here a generic ESP32 DEVKIT V1 board is used together with a no-name CC1101 module. A working pinout is listed below:
+
+|CC1101|ESP32|
+|:-:|:-:|
+|MISO|GPIO19|
+|SCK|GPIO18|
+|MOSI|GPIO23|
+|CSN|GPIO5|
+|GDO0|GPIO15|
+|GDO2|N/C|
+|GND|GND|
+|VCC|3.3V|
+
+## DIY example 2: Custom ESP32-C3 board with CC1101
+
+<img src={require('/img/esp-cc1101-board.png').default} alt="Image of the Heltec WiFi LoRa 32 V4"  style={{filter: "drop-shadow(0px 0px 8px #eeeeee88)"}} />
+
+A more civilized version of the setup above. Source files for this board are available [here](https://github.com/alufers/esp-cc1101-board). The board can be ordered on LCSC or other PCB manufacturing services using the provided Gerber files.
+
+
