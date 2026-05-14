@@ -63,7 +63,7 @@ interface ChannelFormProps {
 export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: ChannelFormProps) {
   const isEdit = channel !== undefined;
   const [name, setName] = useState(channel?.name ?? "");
-  const [proto, setProto] = useState<"1way" | "2way">(channel?.proto ?? "1way");
+  const [proto, setProto] = useState<"1way" | "2way">(channel?.proto ?? "2way");
   const [forceTilt, setForceTilt] = useState(channel?.force_tilt_support ?? false);
   const [bidirFeedback, setBidirFeedback] = useState(channel?.bidirectional_feedback ?? true);
   const [feedbackTimeout, setFeedbackTimeout] = useState(channel?.feedback_timeout_s ?? 120);
