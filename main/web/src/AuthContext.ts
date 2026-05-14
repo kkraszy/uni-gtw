@@ -5,6 +5,7 @@ export interface AuthCtx {
   language: string;
   hostname: string;
   chip: string;
+  version: string;
   onLogout: () => void;
 }
 
@@ -13,5 +14,6 @@ export const AuthContext = createContext<AuthCtx>({
   language: "en",
   hostname: "",
   chip: "",
+  version: "",
   onLogout: () => {},
 });

@@ -96,6 +96,7 @@ interface TopBarProps {
   radioFlash: boolean;
   hostname: string;
   chip: string;
+  version: string;
   onGoToSettings: () => void;
   onOpenWifiModal: () => void;
   onLogout?: () => void;
@@ -110,6 +111,7 @@ export function TopBar({
   radioFlash,
   hostname,
   chip,
+  version,
   onGoToSettings,
   onOpenWifiModal,
   onLogout,
@@ -158,6 +160,7 @@ export function TopBar({
             {chip}
           </span>
         )}
+        {version && <span class="text-xs text-zinc-500 font-mono">v{version}</span>}
         <span class="flex-1" />
 
         {timeStr && (
