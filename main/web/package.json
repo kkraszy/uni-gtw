@@ -3,12 +3,13 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "typecheck": "tsc --noEmit",
+    "codegen": "paraglide-js compile",
+    "typecheck": "pnpm run codegen && tsc --noEmit",
     "lint": "oxlint src",
     "lint:fix": "oxlint --fix src",
     "fmt": "oxfmt src",
     "fmt:check": "oxfmt --check src",
-    "check": "tsc --noEmit && oxlint src && oxfmt --check src"
+    "check": "pnpm run typecheck && oxlint src && oxfmt --check src"
   },
   "dependencies": {
     "@inlang/paraglide-js-react": "^1.0.1",
