@@ -3,6 +3,7 @@ import { ComponentChildren } from "preact";
 import { AuthContext } from "./AuthContext";
 import { PasswordModal } from "./PasswordModal";
 import { InfoResponse } from "./wsTypes";
+import { setLocale } from "./paraglide/runtime.js";
 
 const STORAGE_KEY = "uni_gtw_password";
 
@@ -27,7 +28,9 @@ export function AuthGuard({ children }: AuthGuardProps) {
     fetch("/api/info", { headers })
       .then((r) => r.json() as Promise<InfoResponse>)
       .then((info) => {
-        setLanguage(info.language ?? "en");
+        const lang = (info.language ?? "en") as "en" | "pl";
+        setLocale(lang);
+        setLanguage(lang);
         setHostname(info.hostname ?? "");
         setChip(info.chip ?? "");
 

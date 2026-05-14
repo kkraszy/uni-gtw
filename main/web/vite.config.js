@@ -1,8 +1,16 @@
 import preact from '@preact/preset-vite'
 import tailwindcss from '@tailwindcss/vite'
+import { paraglideVitePlugin } from '@inlang/paraglide-js'
 
 export default {
-  plugins: [tailwindcss(), preact()],
+  plugins: [
+    tailwindcss(),
+    preact(),
+    paraglideVitePlugin({
+      project: './project.inlang',
+      outdir: './src/paraglide',
+    }),
+  ],
   build: {
     rollupOptions: {
       output: {

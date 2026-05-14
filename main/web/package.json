@@ -11,10 +11,12 @@
     "check": "tsc --noEmit && oxlint src && oxfmt --check src"
   },
   "dependencies": {
+    "@inlang/paraglide-js-react": "^1.0.1",
     "lucide-preact": "^1.14.0",
     "preact": "^10.29.1"
   },
   "devDependencies": {
+    "@inlang/paraglide-js": "^2.18.0",
     "@preact/preset-vite": "^2.10.5",
     "@tailwindcss/vite": "^4.2.4",
     "oxfmt": "^0.48.0",

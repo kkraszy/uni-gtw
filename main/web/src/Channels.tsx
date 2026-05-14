@@ -5,6 +5,8 @@ import { ChannelCard } from "./ChannelCard";
 import { ChannelForm } from "./ChannelForm";
 import { RadioStatus, PacketInfo } from "./wsTypes";
 import { Channel } from "./channelTypes";
+import { ParaglideMessage } from "@inlang/paraglide-js-react";
+import { m } from "./paraglide/messages.js";
 
 /* Re-export Channel type so existing imports in App.tsx / wsTypes.ts work */
 export type { Channel };
@@ -48,12 +50,12 @@ export function Channels({
       <div class="flex flex-col h-full p-4 items-center justify-center text-center gap-3">
         <Settings size={32} class="text-zinc-600" />
         <p class="text-zinc-400 text-xs leading-relaxed">
-          The radio module is not configured.
+          {m.radio_not_configured()}
           <br />
-          Set up the GPIO pins and enable it in Settings.
+          {m.radio_not_configured_hint()}
         </p>
         <Button variant="primary" onClick={onGoToSettings} class="flex items-center gap-1.5">
-          <Settings size={12} /> Open Settings
+          <Settings size={12} /> {m.open_settings()}
         </Button>
       </div>
     );
@@ -64,9 +66,9 @@ export function Channels({
       <div class="w-full max-w-lg mx-auto p-2">
         {/* Header */}
         <div class="flex items-center border-b border-zinc-800 pb-1 mb-2">
-          <span class="text-zinc-500 text-xs flex-1">Channels</span>
+          <span class="text-zinc-500 text-xs flex-1">{m.channels_header()}</span>
           <Button onClick={() => setShowForm((v) => !v)} class="flex items-center gap-1">
-            <Plus size={12} /> New
+            <Plus size={12} /> {m.channel_new()}
           </Button>
         </div>
 
@@ -76,9 +78,15 @@ export function Channels({
         {/* Empty state */}
         {channels.length === 0 && (
           <div class="text-zinc-600 text-xs text-center mt-6">
-            No channels yet.
+            {m.channels_empty()}
             <br />
-            Press <strong class="text-zinc-400">+ New</strong> to add one.
+            <ParaglideMessage
+              message={m.channels_empty_hint}
+              inputs={{}}
+              markup={{
+                strong: ({ children }) => <strong class="text-zinc-400">{children}</strong>,
+              }}
+            />
           </div>
         )}
 

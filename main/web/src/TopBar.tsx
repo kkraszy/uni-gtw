@@ -15,15 +15,16 @@ import { Chip, ChipButton } from "./ui/Chip";
 import { rssiToWifiIcon } from "./icons";
 import { StatusPayload, RadioStatus, MqttStatus } from "./wsTypes";
 import { Logo } from "./Logo";
+import { m } from "./paraglide/messages.js";
 
 function formatUptime(seconds: number): string {
   const d = Math.floor(seconds / 86400);
   const h = Math.floor((seconds % 86400) / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
+  const min = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
-  if (d > 0) return `${d}d ${h}h ${m}m`;
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m ${s}s`;
+  if (d > 0) return `${d}d ${h}h ${min}m`;
+  if (h > 0) return `${h}h ${min}m`;
+  return `${min}m ${s}s`;
 }
 
 const RADIO_CHIP: Record<
@@ -111,7 +112,11 @@ export function TopBar({
       ? "text-amber-400 border-amber-900"
       : "text-red-400 border-red-900";
   const wsIconCls = connected ? "text-green-400" : connecting ? "text-amber-400" : "text-red-400";
-  const wsLabel = connected ? "Connected" : connecting ? "Connecting…" : "Disconnected";
+  const wsLabel = connected
+    ? m.ws_connected()
+    : connecting
+      ? m.ws_connecting()
+      : m.ws_disconnected();
   const WsIcon = connected ? Plug : Unplug;
 
   const wifiIconCls =
@@ -214,11 +219,11 @@ export function TopBar({
             <Button
               variant="ghost"
               onClick={onLogout}
-              title="Log out"
+              title={m.log_out()}
               class="flex items-center gap-1.5"
             >
               <LogOut size={13} class="shrink-0" />
-              Log out
+              {m.log_out()}
             </Button>
           </>
         )}
@@ -337,11 +342,11 @@ export function TopBar({
             <Button
               variant="ghost"
               onClick={onLogout}
-              title="Log out"
+              title={m.log_out()}
               class="flex items-center gap-1.5 w-fit"
             >
               <LogOut size={13} class="shrink-0" />
-              Log out
+              {m.log_out()}
             </Button>
           )}
         </div>
