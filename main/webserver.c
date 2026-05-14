@@ -383,6 +383,7 @@ static void ws_dispatch(int fd, const char *text)
 
     case ws_client_message_t_update_channel:
         channel_update(msg.value.update_channel.serial, &msg.value.update_channel);
+        radio_update_channel_hopping_mode();
         break;
 
     case ws_client_message_t_wifi_scan: {
