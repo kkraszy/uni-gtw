@@ -81,7 +81,7 @@ enum channel_device_class_t {
 // Response struct for GET /api/info (unauthenticated)
 struct web_info_t {
     bool web_password_enabled;
-    sstr_t language;
+    language_t language;
     nullable bool web_password_valid;  // present only when X-Auth header was supplied
     sstr_t hostname;
     sstr_t chip;

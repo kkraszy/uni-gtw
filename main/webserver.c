@@ -836,14 +836,6 @@ static esp_err_t restore_post_handler(httpd_req_t *req)
 
 /* ── /api/info (unauthenticated) ─────────────────────────────────────────── */
 
-static const char *language_to_str(int lang)
-{
-    switch (lang) {
-    case language_t_pl: return "pl";
-    default:            return "en";
-    }
-}
-
 static esp_err_t info_get_handler(httpd_req_t *req)
 {
     struct web_info_t info;
@@ -855,7 +847,7 @@ static esp_err_t info_get_handler(httpd_req_t *req)
 
     config_lock();
     info.web_password_enabled = g_config.web_password_enabled;
-    info.language = sstr(language_to_str(g_config.language));
+    info.language = g_config.language;
     info.hostname = sstr_dup(g_config.hostname);
     info.chip = sstr(CONFIG_IDF_TARGET);
     if (has_header) {
