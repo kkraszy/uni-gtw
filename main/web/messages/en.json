@@ -71,6 +71,13 @@
   "menu_delete": "Delete",
   "state_optimistic_title": "Optimistic — awaiting device confirmation",
   "state_timed_out_title": "Timed out — no device confirmation received",
+  "pairing_instructions_title": "Pairing instructions",
+  "pairing_instructions_show_steps": "Show steps",
+  "pairing_instructions_step_1": "Put the device into programming mode. This is done by holding the STOP and UP buttons on the MASTER remote. After entering programming mode, the blind should perform a sequence of micro-movements.",
+  "pairing_instructions_step_2": "Click the Stop+Up button in the \"Advanced\" section of this channel. After successful pairing, the blind should perform a sequence of micro-movements.",
+  "pairing_instructions_step_3": "Exit programming mode by holding the STOP and UP buttons on the MASTER remote. Alternatively, you can wait approximately 30 seconds for the blind to exit programming mode automatically.",
+  "pairing_instructions_more_info": "See {#a}documentation{/a} for more information about pairing devices.",
+
   "delete_channel_title": "Delete channel?",
   "delete_channel_warning": "Before deleting a channel it is recommended to unpair it from the motor, as it is impossible to do after deleting the channel without factory resetting the motor.",
   "delete_channel_serial_prefix": "Serial:",

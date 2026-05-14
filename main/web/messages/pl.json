@@ -71,6 +71,13 @@
   "menu_delete": "Usuń",
   "state_optimistic_title": "Stan optymistyczny — oczekiwanie na potwierdzenie",
   "state_timed_out_title": "Przekroczono czas odpowiedzi — brak potwierdzenia",
+  "pairing_instructions_title": "Instrukcja parowania",
+  "pairing_instructions_show_steps": "Pokaż kroki",
+  "pairing_instructions_step_1": "Wprowadź siłownik w tryb programowania. Robi się to przytrzymując przyciski STOP i GÓRA na pilocie MASTER. Po wejściu w tryb programowania roleta powinna wykonać sekwencję mikroruchów.",
+  "pairing_instructions_step_2": "Kliknij przycisk Stop+Góra w sekcji \"Zaawansowane\" tego kanału. Po pomyślnym sparowaniu roleta powinna wykonać sekwencję mikroruchów.",
+  "pairing_instructions_step_3": "Wyjdź z trybu programowania przytrzymując przyciski STOP i GÓRA na pilocie MASTER. Alternatywnie moesz poczeka ok. 30s, aby roleta sama opuściła tryb programowania.",
+  "pairing_instructions_more_info": "Więcej informacji o parowaniu urządzeń znajdziesz w {#a}dokumentacji{/a}.",
+
   "delete_channel_title": "Usunąć kanał?",
   "delete_channel_warning": "Przed usunięciem kanału zaleca się odparowanie go od silnika, ponieważ jest to niemożliwe po usunięciu kanału bez resetu fabrycznego silnika.",
   "delete_channel_serial_prefix": "Numer seryjny:",

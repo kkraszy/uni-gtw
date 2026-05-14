@@ -49,14 +49,10 @@ function AppInner() {
   const [showConsole, setShowConsole] = useState(false);
   const [radioFlash, setRadioFlash] = useState(false);
   const [lastPacketRx, setLastPacketRx] = useState<PacketInfo | null>(null);
-  const [otaProgress, setOtaProgress] = useState<OtaProgressPayload | null>(
-    null,
-  );
+  const [otaProgress, setOtaProgress] = useState<OtaProgressPayload | null>(null);
   const wifiDismissedRef = useRef(false);
   const lastStatusTimeRef = useRef<number>(0);
-  const radioFlashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
+  const radioFlashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     document.title = hostname || "uni-gtw";
@@ -91,25 +87,15 @@ function AppInner() {
     } else if (lastJsonMessage.cmd === "status") {
       lastStatusTimeRef.current = Date.now();
       setStatus(lastJsonMessage.payload);
-      if (
-        lastJsonMessage.payload.wifi_mode === "ap" &&
-        !wifiDismissedRef.current
-      ) {
+      if (lastJsonMessage.payload.wifi_mode === "ap" && !wifiDismissedRef.current) {
         setShowWifiModal(true);
       }
     } else if (lastJsonMessage.cmd === "wifi_scan_result") {
       setScanResults(lastJsonMessage.payload);
-    } else if (
-      lastJsonMessage.cmd === "packet_rx" ||
-      lastJsonMessage.cmd === "packet_tx"
-    ) {
-      if (radioFlashTimeoutRef.current)
-        clearTimeout(radioFlashTimeoutRef.current);
+    } else if (lastJsonMessage.cmd === "packet_rx" || lastJsonMessage.cmd === "packet_tx") {
+      if (radioFlashTimeoutRef.current) clearTimeout(radioFlashTimeoutRef.current);
       setRadioFlash(true);
-      radioFlashTimeoutRef.current = setTimeout(
-        () => setRadioFlash(false),
-        300,
-      );
+      radioFlashTimeoutRef.current = setTimeout(() => setRadioFlash(false), 300);
       if (lastJsonMessage.cmd === "packet_rx") {
         setLastPacketRx(lastJsonMessage.payload);
       }
@@ -132,10 +118,7 @@ function AppInner() {
   useEffect(() => {
     if (readyState !== ReadyState.OPEN) return;
     const interval = setInterval(() => {
-      if (
-        lastStatusTimeRef.current > 0 &&
-        Date.now() - lastStatusTimeRef.current > 20_000
-      ) {
+      if (lastStatusTimeRef.current > 0 && Date.now() - lastStatusTimeRef.current > 20_000) {
         forceReconnect();
       }
     }, 5000);
@@ -181,19 +164,12 @@ function AppInner() {
       />
 
       {/* Tab bar with console toggle on the right */}
-      <Tabs
-        tabs={getTabs()}
-        active={activeTab}
-        onChange={setActiveTab}
-        rightSlot={consoleToggle}
-      />
+      <Tabs tabs={getTabs()} active={activeTab} onChange={setActiveTab} rightSlot={consoleToggle} />
 
       {/* Main content + optional console */}
       <div class="flex flex-1 overflow-hidden relative">
         {/* Main view — hidden behind console on mobile when console is open */}
-        <div
-          class={`flex-1 overflow-hidden ${showConsole ? "hidden md:block" : ""}`}
-        >
+        <div class={`flex-1 overflow-hidden ${showConsole ? "hidden md:block" : ""}`}>
           {activeTab === "control" ? (
             <Channels
               channels={channels}

@@ -17,6 +17,8 @@ import {
 import { Button } from "./ui/Button";
 import { Collapsible } from "./ui/Collapsible";
 import { Dropdown } from "./ui/Dropdown";
+import { ParaglideMessage } from "@inlang/paraglide-js-react";
+import { Alert } from "./ui/Alert";
 import { Modal } from "./ui/Modal";
 import { ChannelForm } from "./ChannelForm";
 import { rssiToSignalIcon } from "./icons";
@@ -297,6 +299,40 @@ export function ChannelCard({ ch, onSend, lastPacketRx }: ChannelCardProps) {
         <StateChip ch={ch} />
         <Dropdown trigger={<Menu size={14} />} items={dropdownItems} />
       </div>
+
+      {/* Pairing instructions — shown when bidirectional feedback is on but device not yet seen */}
+      {ch.bidirectional_feedback && !ch.last_seen_ts && (
+        <Alert variant="info" class="mb-2">
+          <div>
+            <p class="font-semibold mb-1">{m.pairing_instructions_title()}</p>
+            <Collapsible label={m.pairing_instructions_show_steps()}>
+              <ol class="list-decimal list-inside space-y-1 mt-1">
+                <li>{m.pairing_instructions_step_1()}</li>
+                <li>{m.pairing_instructions_step_2()}</li>
+                <li>{m.pairing_instructions_step_3()}</li>
+              </ol>
+              <p class="mt-2 opacity-75">
+                <ParaglideMessage
+                  message={m.pairing_instructions_more_info}
+                  inputs={{}}
+                  markup={{
+                    a: ({ children }) => (
+                      <a
+                        href="https://alufers.github.io/uni-gtw/docs/usage/pairing_devices"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="underline"
+                      >
+                        {children}
+                      </a>
+                    ),
+                  }}
+                />
+              </p>
+            </Collapsible>
+          </div>
+        </Alert>
+      )}
 
       {/* Edit form */}
       {editing && (

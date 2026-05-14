@@ -45,9 +45,7 @@ export function Ota({ otaProgress }: OtaProps) {
   const [manualUrl, setManualUrl] = useState("");
 
   const checkForUpdates = () => {
-    const headers: Record<string, string> = password
-      ? { "X-Auth": password }
-      : {};
+    const headers: Record<string, string> = password ? { "X-Auth": password } : {};
     setChecking(true);
     setCheckError(null);
     fetch("/api/ota/check", { headers })
@@ -67,9 +65,7 @@ export function Ota({ otaProgress }: OtaProps) {
   }, [otaProgress?.status]);
 
   const applyUrl = (url: string) => {
-    const headers: Record<string, string> = password
-      ? { "X-Auth": password }
-      : {};
+    const headers: Record<string, string> = password ? { "X-Auth": password } : {};
     setApplyError(null);
     setApplying(true);
     setShowModal(true);
@@ -87,18 +83,15 @@ export function Ota({ otaProgress }: OtaProps) {
       });
   };
 
-  const handleApply = () =>
-    checkResult?.asset_url && applyUrl(checkResult.asset_url);
-  const handleApplyManual = () =>
-    manualUrl.trim() && applyUrl(manualUrl.trim());
+  const handleApply = () => checkResult?.asset_url && applyUrl(checkResult.asset_url);
+  const handleApplyManual = () => manualUrl.trim() && applyUrl(manualUrl.trim());
 
   const closeModal = () => {
     setShowModal(false);
     setApplying(false);
   };
 
-  const isDone =
-    otaProgress?.status === "done" || otaProgress?.status === "error";
+  const isDone = otaProgress?.status === "done" || otaProgress?.status === "error";
 
   return (
     <>
@@ -117,9 +110,7 @@ export function Ota({ otaProgress }: OtaProps) {
               </Button>
             )}
             {checkError && (
-              <p class="text-xs text-red-400">
-                {m.ota_check_error({ error: checkError })}
-              </p>
+              <p class="text-xs text-red-400">{m.ota_check_error({ error: checkError })}</p>
             )}
             {checkResult && (
               <div class="text-xs text-zinc-400 flex flex-col gap-1">
@@ -132,9 +123,7 @@ export function Ota({ otaProgress }: OtaProps) {
                 {checkResult.latest_version && (
                   <span>
                     {m.ota_latest_version_label()}{" "}
-                    <span class="text-zinc-200">
-                      {checkResult.latest_version}
-                    </span>
+                    <span class="text-zinc-200">{checkResult.latest_version}</span>
                   </span>
                 )}
               </div>
@@ -144,9 +133,7 @@ export function Ota({ otaProgress }: OtaProps) {
               <div class="flex flex-col gap-3">
                 <p class="text-xs text-zinc-300">
                   {m.ota_update_available_prefix()}{" "}
-                  <span class="text-blue-400 font-bold">
-                    {checkResult.latest_version}
-                  </span>
+                  <span class="text-blue-400 font-bold">{checkResult.latest_version}</span>
                 </p>
                 {checkResult.html_url && (
                   <a
@@ -168,9 +155,7 @@ export function Ota({ otaProgress }: OtaProps) {
                 </Button>
               </div>
             ) : (
-              checkResult && (
-                <p class="text-xs text-zinc-400">{m.ota_up_to_date()}</p>
-              )
+              checkResult && <p class="text-xs text-zinc-400">{m.ota_up_to_date()}</p>
             )}
 
             <div class="border-t border-zinc-800 pt-4 -mt-1">
@@ -184,9 +169,7 @@ export function Ota({ otaProgress }: OtaProps) {
                       type="url"
                       value={manualUrl}
                       placeholder="https://…/firmware.bin"
-                      onInput={(e) =>
-                        setManualUrl((e.target as HTMLInputElement).value)
-                      }
+                      onInput={(e) => setManualUrl((e.target as HTMLInputElement).value)}
                       class="w-full bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs font-mono"
                     />
                   </div>
@@ -215,14 +198,10 @@ export function Ota({ otaProgress }: OtaProps) {
         >
           <div class="flex flex-col gap-3">
             {applyError ? (
-              <p class="text-xs text-red-400">
-                {m.ota_apply_error({ error: applyError })}
-              </p>
+              <p class="text-xs text-red-400">{m.ota_apply_error({ error: applyError })}</p>
             ) : otaProgress ? (
               <>
-                <p class="text-xs text-zinc-300">
-                  {statusLabel(otaProgress.status)}
-                </p>
+                <p class="text-xs text-zinc-300">{statusLabel(otaProgress.status)}</p>
                 {otaProgress.progress !== null && (
                   <div class="w-full bg-zinc-800 rounded h-2">
                     <div
@@ -232,9 +211,7 @@ export function Ota({ otaProgress }: OtaProps) {
                   </div>
                 )}
                 {otaProgress.progress !== null && (
-                  <p class="text-xs text-zinc-400 text-right">
-                    {otaProgress.progress}%
-                  </p>
+                  <p class="text-xs text-zinc-400 text-right">{otaProgress.progress}%</p>
                 )}
                 {otaProgress.status === "error" && otaProgress.error && (
                   <p class="text-xs text-red-400">{otaProgress.error}</p>
