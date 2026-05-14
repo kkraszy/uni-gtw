@@ -263,13 +263,16 @@ esp_err_t wifi_manager_set_credentials(const char *ssid, const char *password)
     sta_cfg.sta.threshold.authmode = strlen(password) > 0 ? WIFI_AUTH_WPA2_PSK : WIFI_AUTH_OPEN;
 
     if (s_mode == WIFI_MGR_MODE_AP) {
-        /* Set config before switching mode: mode change fires WIFI_EVENT_STA_START
-         * which immediately calls esp_wifi_connect(), so the config must be in
-         * place before that event fires. */
-        esp_wifi_set_config(WIFI_IF_STA, &sta_cfg);
+        /* Hot mode-switch (AP→APSTA) fires WIFI_EVENT_STA_START before the STA
+         * interface is ready, producing "Haven't to connect to a suitable AP now!"
+         * errors. A clean stop/start cycle avoids this. The AP config is preserved
+         * across stop/start, so the softAP restarts unchanged in APSTA mode.
+         * s_mode stays WIFI_MGR_MODE_AP until STA_CONNECTED drops to STA-only. */
+        esp_wifi_stop();
         esp_wifi_set_mode(WIFI_MODE_APSTA);
+        esp_wifi_set_config(WIFI_IF_STA, &sta_cfg);
+        esp_wifi_start();
         /* STA_START event handler calls esp_wifi_connect() — no need to here. */
-        /* s_mode will be confirmed STA once STA_CONNECTED fires and drops APSTA */
     } else {
         esp_wifi_disconnect();
         esp_wifi_set_config(WIFI_IF_STA, &sta_cfg);
