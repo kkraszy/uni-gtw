@@ -5,7 +5,7 @@
 #include "esp_netif.h"
 #include "nvs_flash.h"
 #include "mdns.h"
-
+#include "esp_app_desc.h"
 #include "background_worker.h"
 #include "channel.h"
 #include "config.h"
@@ -83,7 +83,11 @@ void app_main(void)
 
     ESP_ERROR_CHECK(mdns_init());
     mdns_hostname_set(hostname);
-    mdns_instance_name_set("uni-gtw RF Gateway");
+
+     const esp_app_desc_t *app_desc = esp_app_get_description();
+    char instance_name[100];
+    snprintf(instance_name, sizeof(instance_name), "uni-gtw RF Gateway (%s) running on %s", app_desc->version, CONFIG_IDF_TARGET);
+    mdns_instance_name_set(instance_name);
     mdns_service_add(NULL, "_http",    "_tcp", 80, NULL, 0);
     mdns_service_add(NULL, "_uni_gtw", "_tcp", 80, NULL, 0);
     ESP_LOGI(TAG, "mDNS started: %s.local", hostname);
