@@ -3,6 +3,7 @@ import { SubSection } from "../ui/SubSection";
 import { SectionCard } from "../ui/SectionCard";
 import { Monitor } from "lucide-preact";
 import type { SettingsData } from "./types";
+import { m } from "../paraglide/messages.js";
 
 interface Props {
   settings: SettingsData;
@@ -11,10 +12,10 @@ interface Props {
 
 export function UiSection({ settings, onChange }: Props) {
   return (
-    <SectionCard icon={Monitor} title="UI">
+    <SectionCard icon={Monitor} title={m.ui_section_title()}>
       {/* Language */}
       <div>
-        <FieldLabel>Language</FieldLabel>
+        <FieldLabel>{m.ui_language_label()}</FieldLabel>
         <select
           value={settings.language}
           onChange={(e) =>
@@ -31,7 +32,7 @@ export function UiSection({ settings, onChange }: Props) {
       </div>
 
       {/* Security */}
-      <SubSection title="Password">
+      <SubSection title={m.ui_password_section()}>
         <label class="flex items-center gap-2 cursor-pointer select-none">
           <input
             type="checkbox"
@@ -46,11 +47,11 @@ export function UiSection({ settings, onChange }: Props) {
             }}
             class="w-4 h-4 accent-blue-500"
           />
-          <span class="text-xs text-zinc-300">Enable web UI password</span>
+          <span class="text-xs text-zinc-300">{m.ui_enable_password()}</span>
         </label>
         {settings.web_password_enabled && (
           <div class="mt-3">
-            <FieldLabel>Password</FieldLabel>
+            <FieldLabel>{m.label_password()}</FieldLabel>
             <input
               type="password"
               value={settings.web_password}
@@ -62,7 +63,7 @@ export function UiSection({ settings, onChange }: Props) {
               }
               class="w-full bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs font-mono"
             />
-            <p class="text-zinc-600 text-xs mt-1">Leave unchanged to keep the current password.</p>
+            <p class="text-zinc-600 text-xs mt-1">{m.ui_password_hint()}</p>
           </div>
         )}
       </SubSection>

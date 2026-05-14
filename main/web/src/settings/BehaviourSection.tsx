@@ -3,6 +3,8 @@ import { SubSection } from "../ui/SubSection";
 import { SectionCard } from "../ui/SectionCard";
 import { SlidersHorizontal } from "lucide-preact";
 import type { SettingsData } from "./types";
+import { m } from "../paraglide/messages.js";
+import { ParaglideMessage } from "@inlang/paraglide-js-react";
 
 interface Props {
   settings: SettingsData;
@@ -11,9 +13,9 @@ interface Props {
 
 export function BehaviourSection({ settings, onChange }: Props) {
   return (
-    <SectionCard icon={SlidersHorizontal} title="Behaviour">
+    <SectionCard icon={SlidersHorizontal} title={m.behaviour_section_title()}>
       <div>
-        <FieldLabel>Position query interval</FieldLabel>
+        <FieldLabel>{m.behaviour_pos_query_label()}</FieldLabel>
         <div class="flex items-center gap-2">
           <input
             type="number"
@@ -31,14 +33,12 @@ export function BehaviourSection({ settings, onChange }: Props) {
             }
             class="w-28 bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs font-mono"
           />
-          <span class="text-zinc-500 text-xs">seconds (0 = disabled)</span>
+          <span class="text-zinc-500 text-xs">{m.behaviour_pos_query_unit()}</span>
         </div>
-        <p class="text-zinc-600 text-xs mt-1">
-          How often to automatically request position from paired devices
-        </p>
+        <p class="text-zinc-600 text-xs mt-1">{m.behaviour_pos_query_hint()}</p>
       </div>
 
-      <SubSection title="Observability">
+      <SubSection title={m.behaviour_observability_section()}>
         <label class="flex items-center gap-2 cursor-pointer select-none">
           <input
             type="checkbox"
@@ -52,8 +52,13 @@ export function BehaviourSection({ settings, onChange }: Props) {
             class="w-4 h-4 accent-blue-500"
           />
           <span class="text-xs text-zinc-300">
-            Enable Prometheus metrics endpoint (
-            <span class="font-mono text-zinc-400">/metrics</span>)
+            <ParaglideMessage
+              message={m.behaviour_enable_prometheus}
+              inputs={{}}
+              markup={{
+                code: ({ children }) => <span class="font-mono text-zinc-400">{children}</span>,
+              }}
+            />
           </span>
         </label>
       </SubSection>

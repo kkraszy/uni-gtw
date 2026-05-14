@@ -6,6 +6,7 @@ import { SectionCard } from "../ui/SectionCard";
 import { Cpu, Lightbulb, Radio } from "lucide-preact";
 import { findGpioDuplicates, resolveEffectiveHardware } from "./types";
 import type { SettingsData, HardwareConfig, HardwarePreset, HardwarePresetInfo } from "./types";
+import { m } from "../paraglide/messages.js";
 
 interface Props {
   settings: SettingsData;
@@ -52,8 +53,8 @@ function GpioInput({
           error ? "border-red-500" : "border-zinc-600"
         }`}
       />
-      {error && <span class="text-red-400 text-xs">duplicate</span>}
-      {!error && value < 0 && <span class="text-zinc-500 text-xs">disabled</span>}
+      {error && <span class="text-red-400 text-xs">{m.hw_gpio_duplicate()}</span>}
+      {!error && value < 0 && <span class="text-zinc-500 text-xs">{m.hw_gpio_disabled()}</span>}
     </div>
   );
 }
@@ -84,8 +85,8 @@ export function HardwareSection({ settings, presets, onChange }: Props) {
   };
 
   return (
-    <SectionCard icon={Cpu} title="Hardware">
-      <SubSection title="Hardware preset" divided={false}>
+    <SectionCard icon={Cpu} title={m.hw_section_title()}>
+      <SubSection title={m.hw_preset_section()} divided={false}>
         <select
           value={settings.hardware_preset}
           onChange={(e) =>
@@ -96,7 +97,7 @@ export function HardwareSection({ settings, presets, onChange }: Props) {
           }
           class="w-full bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs font-mono"
         >
-          <option value="custom">Custom</option>
+          <option value="custom">{m.hw_preset_custom()}</option>
           {presets.map((preset) => (
             <option key={preset.id} value={preset.id}>
               {preset.name}
@@ -131,7 +132,7 @@ export function HardwareSection({ settings, presets, onChange }: Props) {
       {/* Radio */}
       {customHardware && (
         <div ref={radioSectionRef}>
-          <SubSection icon={Radio} title="Radio">
+          <SubSection icon={Radio} title={m.hw_radio_section()}>
             <label class="flex items-center gap-2 cursor-pointer select-none mb-3">
               <input
                 type="checkbox"
@@ -139,18 +140,13 @@ export function HardwareSection({ settings, presets, onChange }: Props) {
                 onChange={(e) => updateHardware("enabled", (e.target as HTMLInputElement).checked)}
                 class="w-4 h-4 accent-blue-500"
               />
-              <span class="text-xs text-zinc-300">Enable radio</span>
+              <span class="text-xs text-zinc-300">{m.hw_enable_radio()}</span>
             </label>
 
-            {radioDisabled && (
-              <Alert class="mb-3">
-                Radio is disabled. The gateway will not be able to control or receive status from
-                blinds until the radio is enabled and saved.
-              </Alert>
-            )}
+            {radioDisabled && <Alert class="mb-3">{m.hw_radio_disabled_alert()}</Alert>}
 
             <div>
-              <label class="block mb-1 text-xs text-zinc-400">Radio type</label>
+              <label class="block mb-1 text-xs text-zinc-400">{m.hw_radio_type_label()}</label>
               <select
                 value={effectiveHardware.type}
                 disabled={radioDisabled}
@@ -169,7 +165,7 @@ export function HardwareSection({ settings, presets, onChange }: Props) {
               </select>
             </div>
 
-            <Hint>GPIO pin numbers for the SPI connection.</Hint>
+            <Hint>{m.hw_gpio_hint()}</Hint>
 
             <div class={radioDisabled ? "opacity-40 pointer-events-none" : ""}>
               <div class="flex flex-col gap-2 mt-2">
@@ -217,14 +213,12 @@ export function HardwareSection({ settings, presets, onChange }: Props) {
                   min={-1}
                 />
                 {gpioDupes.size > 0 && (
-                  <p class="text-red-400 text-xs">
-                    Each GPIO pin must be assigned to exactly one signal.
-                  </p>
+                  <p class="text-red-400 text-xs">{m.hw_gpio_conflict_error()}</p>
                 )}
               </div>
 
               <div class="flex items-center gap-2 mt-3">
-                <label class="text-xs text-zinc-400 shrink-0">SPI clock</label>
+                <label class="text-xs text-zinc-400 shrink-0">{m.hw_spi_clock_label()}</label>
                 <input
                   type="number"
                   value={effectiveHardware.spi_freq_hz}
@@ -251,7 +245,7 @@ export function HardwareSection({ settings, presets, onChange }: Props) {
 
       {/* Status LED */}
       {customHardware && (
-        <SubSection icon={Lightbulb} title="Status LED">
+        <SubSection icon={Lightbulb} title={m.hw_led_section()}>
           <div class="flex items-center gap-2 mt-2">
             <label class="w-14 shrink-0 text-xs text-zinc-400 text-right">GPIO</label>
             <input
@@ -274,7 +268,7 @@ export function HardwareSection({ settings, presets, onChange }: Props) {
               class="w-20 bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs font-mono"
             />
             {effectiveHardware.gpio_status_led < 0 && (
-              <span class="text-zinc-500 text-xs">disabled</span>
+              <span class="text-zinc-500 text-xs">{m.hw_gpio_disabled()}</span>
             )}
           </div>
         </SubSection>

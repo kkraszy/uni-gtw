@@ -2,6 +2,7 @@ import { useEffect } from "preact/hooks";
 import { createPortal } from "preact/compat";
 import { ComponentChildren } from "preact";
 import { Button } from "./Button";
+import { m } from "../paraglide/messages.js";
 
 interface ModalProps {
   title: string;
@@ -57,7 +58,7 @@ export function Modal({
         {/* Footer */}
         {onOk && (
           <div class="flex gap-2 justify-end px-4 py-3 border-t border-zinc-700">
-            <Button onClick={onCancel}>Cancel</Button>
+            <Button onClick={onCancel}>{m.cancel()}</Button>
             <Button variant="primary" onClick={onOk} disabled={okDisabled}>
               {okLabel}
             </Button>

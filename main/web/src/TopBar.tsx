@@ -27,48 +27,65 @@ function formatUptime(seconds: number): string {
   return `${min}m ${s}s`;
 }
 
-const RADIO_CHIP: Record<
-  RadioStatus,
-  { label: string; cls: string; iconCls: string; clickable: boolean }
-> = {
-  ok: {
-    label: "Radio OK",
-    cls: "text-green-400 border-green-900",
-    iconCls: "text-green-400",
-    clickable: false,
-  },
-  error: {
-    label: "Radio error",
-    cls: "text-red-400 border-red-900",
-    iconCls: "text-red-400",
-    clickable: false,
-  },
-  not_configured: {
-    label: "Radio not set up",
-    cls: "text-red-400 border-red-900",
-    iconCls: "text-red-400",
-    clickable: true,
-  },
-};
+function getRadioChip(status: RadioStatus): {
+  label: string;
+  cls: string;
+  iconCls: string;
+  clickable: boolean;
+} {
+  switch (status) {
+    case "ok":
+      return {
+        label: m.topbar_radio_ok(),
+        cls: "text-green-400 border-green-900",
+        iconCls: "text-green-400",
+        clickable: false,
+      };
+    case "error":
+      return {
+        label: m.topbar_radio_error(),
+        cls: "text-red-400 border-red-900",
+        iconCls: "text-red-400",
+        clickable: false,
+      };
+    case "not_configured":
+      return {
+        label: m.topbar_radio_not_setup(),
+        cls: "text-red-400 border-red-900",
+        iconCls: "text-red-400",
+        clickable: true,
+      };
+  }
+}
 
-const MQTT_CHIP: Record<MqttStatus, { label: string; cls: string; iconCls: string }> = {
-  unconfigured: {
-    label: "MQTT off",
-    cls: "text-zinc-500 border-zinc-700",
-    iconCls: "text-zinc-600",
-  },
-  connecting: {
-    label: "MQTT connecting",
-    cls: "text-amber-400 border-amber-900",
-    iconCls: "text-amber-400",
-  },
-  connected: { label: "MQTT", cls: "text-green-400 border-green-900", iconCls: "text-green-400" },
-  disconnected: {
-    label: "MQTT disconnected",
-    cls: "text-red-400 border-red-900",
-    iconCls: "text-red-400",
-  },
-};
+function getMqttChip(status: MqttStatus): { label: string; cls: string; iconCls: string } {
+  switch (status) {
+    case "unconfigured":
+      return {
+        label: m.topbar_mqtt_off(),
+        cls: "text-zinc-500 border-zinc-700",
+        iconCls: "text-zinc-600",
+      };
+    case "connecting":
+      return {
+        label: m.topbar_mqtt_connecting(),
+        cls: "text-amber-400 border-amber-900",
+        iconCls: "text-amber-400",
+      };
+    case "connected":
+      return {
+        label: m.topbar_mqtt_connected(),
+        cls: "text-green-400 border-green-900",
+        iconCls: "text-green-400",
+      };
+    case "disconnected":
+      return {
+        label: m.topbar_mqtt_disconnected(),
+        cls: "text-red-400 border-red-900",
+        iconCls: "text-red-400",
+      };
+  }
+}
 
 interface TopBarProps {
   status: StatusPayload | null;
@@ -99,8 +116,8 @@ export function TopBar({
 }: TopBarProps) {
   const [mobileExpanded, setMobileExpanded] = useState(false);
 
-  const radioChip = radioStatus ? RADIO_CHIP[radioStatus] : null;
-  const mqttChip = mqttStatus ? MQTT_CHIP[mqttStatus] : null;
+  const radioChip = radioStatus ? getRadioChip(radioStatus) : null;
+  const mqttChip = mqttStatus ? getMqttChip(mqttStatus) : null;
 
   const uptimeStr = status ? formatUptime(status.uptime) : null;
   const timeStr =
@@ -144,14 +161,14 @@ export function TopBar({
         <span class="flex-1" />
 
         {timeStr && (
-          <Chip title="Local time">
+          <Chip title={m.topbar_local_time()}>
             <Clock size={13} class="shrink-0" />
             {timeStr}
           </Chip>
         )}
 
         {uptimeStr && (
-          <Chip title="Uptime since last boot">
+          <Chip title={m.topbar_uptime()}>
             <ClockArrowUp size={13} class="shrink-0" />
             {uptimeStr}
           </Chip>
@@ -162,7 +179,7 @@ export function TopBar({
             <ChipButton
               class={radioChip.cls}
               onClick={onGoToSettings}
-              title="Radio not configured — click to open Settings"
+              title={m.topbar_radio_click_settings()}
             >
               <Radio size={13} class="shrink-0" />
               {radioChip.label}
@@ -188,7 +205,7 @@ export function TopBar({
           <ChipButton
             class="text-amber-400 border-amber-900"
             onClick={onOpenWifiModal}
-            title="Running in AP mode — click to configure WiFi"
+            title={m.topbar_ap_click_wifi()}
           >
             <WifiZero size={13} class="shrink-0" />
             AP: UNI-GTW
@@ -251,7 +268,7 @@ export function TopBar({
         {mqttChip && (
           <Server size={14} class={`shrink-0 ${mqttChip.iconCls}`} title={mqttChip.label} />
         )}
-        <WifiIcon size={14} class={`shrink-0 ${wifiIconCls}`} title="WiFi status" />
+        <WifiIcon size={14} class={`shrink-0 ${wifiIconCls}`} title={m.topbar_wifi_status()} />
         <WsIcon size={14} class={`shrink-0 ${wsIconCls}`} title={wsLabel} />
 
         <ChevronDown
@@ -264,13 +281,13 @@ export function TopBar({
       {mobileExpanded && (
         <div class="md:hidden flex flex-col gap-2 px-3 pb-3 border-t border-zinc-800/50">
           {timeStr && (
-            <Chip title="Local time" class="w-fit">
+            <Chip title={m.topbar_local_time()} class="w-fit">
               <Clock size={13} class="shrink-0" />
               {timeStr}
             </Chip>
           )}
           {uptimeStr && (
-            <Chip title="Uptime since last boot" class="w-fit">
+            <Chip title={m.topbar_uptime()} class="w-fit">
               <ClockArrowUp size={13} class="shrink-0" />
               {uptimeStr}
             </Chip>
@@ -284,7 +301,7 @@ export function TopBar({
                   setMobileExpanded(false);
                   onGoToSettings();
                 }}
-                title="Radio not configured — tap to open Settings"
+                title={m.topbar_radio_click_settings()}
               >
                 <Radio size={13} class="shrink-0" />
                 {radioChip.label}
@@ -313,7 +330,7 @@ export function TopBar({
                 setMobileExpanded(false);
                 onOpenWifiModal();
               }}
-              title="Running in AP mode — tap to configure WiFi"
+              title={m.topbar_ap_click_wifi()}
             >
               <WifiZero size={13} class="shrink-0" />
               AP: UNI-GTW

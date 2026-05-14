@@ -1,6 +1,7 @@
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import { Terminal, X } from "lucide-preact";
 import { AuthContext } from "./AuthContext";
+import { m } from "./paraglide/messages.js";
 import { AuthGuard } from "./AuthGuard";
 import { Console } from "./Console";
 import { Channels } from "./Channels";
@@ -22,11 +23,11 @@ import {
   OtaProgressPayload,
 } from "./wsTypes";
 
-const TABS = [
-  { id: "control", label: "Control" },
-  { id: "settings", label: "Settings" },
-  { id: "ota", label: "OTA" },
-  { id: "about", label: "About" },
+const getTabs = () => [
+  { id: "control", label: m.tab_control() },
+  { id: "settings", label: m.tab_settings() },
+  { id: "ota", label: m.tab_ota() },
+  { id: "about", label: m.tab_about() },
 ];
 
 export function App() {
@@ -48,10 +49,14 @@ function AppInner() {
   const [showConsole, setShowConsole] = useState(false);
   const [radioFlash, setRadioFlash] = useState(false);
   const [lastPacketRx, setLastPacketRx] = useState<PacketInfo | null>(null);
-  const [otaProgress, setOtaProgress] = useState<OtaProgressPayload | null>(null);
+  const [otaProgress, setOtaProgress] = useState<OtaProgressPayload | null>(
+    null,
+  );
   const wifiDismissedRef = useRef(false);
   const lastStatusTimeRef = useRef<number>(0);
-  const radioFlashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const radioFlashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   useEffect(() => {
     document.title = hostname || "uni-gtw";
@@ -86,15 +91,25 @@ function AppInner() {
     } else if (lastJsonMessage.cmd === "status") {
       lastStatusTimeRef.current = Date.now();
       setStatus(lastJsonMessage.payload);
-      if (lastJsonMessage.payload.wifi_mode === "ap" && !wifiDismissedRef.current) {
+      if (
+        lastJsonMessage.payload.wifi_mode === "ap" &&
+        !wifiDismissedRef.current
+      ) {
         setShowWifiModal(true);
       }
     } else if (lastJsonMessage.cmd === "wifi_scan_result") {
       setScanResults(lastJsonMessage.payload);
-    } else if (lastJsonMessage.cmd === "packet_rx" || lastJsonMessage.cmd === "packet_tx") {
-      if (radioFlashTimeoutRef.current) clearTimeout(radioFlashTimeoutRef.current);
+    } else if (
+      lastJsonMessage.cmd === "packet_rx" ||
+      lastJsonMessage.cmd === "packet_tx"
+    ) {
+      if (radioFlashTimeoutRef.current)
+        clearTimeout(radioFlashTimeoutRef.current);
       setRadioFlash(true);
-      radioFlashTimeoutRef.current = setTimeout(() => setRadioFlash(false), 300);
+      radioFlashTimeoutRef.current = setTimeout(
+        () => setRadioFlash(false),
+        300,
+      );
       if (lastJsonMessage.cmd === "packet_rx") {
         setLastPacketRx(lastJsonMessage.payload);
       }
@@ -117,7 +132,10 @@ function AppInner() {
   useEffect(() => {
     if (readyState !== ReadyState.OPEN) return;
     const interval = setInterval(() => {
-      if (lastStatusTimeRef.current > 0 && Date.now() - lastStatusTimeRef.current > 20_000) {
+      if (
+        lastStatusTimeRef.current > 0 &&
+        Date.now() - lastStatusTimeRef.current > 20_000
+      ) {
         forceReconnect();
       }
     }, 5000);
@@ -134,7 +152,7 @@ function AppInner() {
   const consoleToggle = (
     <button
       onClick={() => setShowConsole((v) => !v)}
-      title={showConsole ? "Hide console" : "Show console"}
+      title={showConsole ? m.console_hide_title() : m.console_show_title()}
       class={`px-3 py-2 text-xs font-medium border-b-2 cursor-pointer bg-transparent border-l-0 border-r-0 border-t-0 transition-colors flex items-center gap-1.5 ${
         showConsole
           ? "border-blue-500 text-blue-400"
@@ -142,7 +160,7 @@ function AppInner() {
       }`}
     >
       <Terminal size={13} />
-      Console
+      {m.console()}
     </button>
   );
 
@@ -163,12 +181,19 @@ function AppInner() {
       />
 
       {/* Tab bar with console toggle on the right */}
-      <Tabs tabs={TABS} active={activeTab} onChange={setActiveTab} rightSlot={consoleToggle} />
+      <Tabs
+        tabs={getTabs()}
+        active={activeTab}
+        onChange={setActiveTab}
+        rightSlot={consoleToggle}
+      />
 
       {/* Main content + optional console */}
       <div class="flex flex-1 overflow-hidden relative">
         {/* Main view — hidden behind console on mobile when console is open */}
-        <div class={`flex-1 overflow-hidden ${showConsole ? "hidden md:block" : ""}`}>
+        <div
+          class={`flex-1 overflow-hidden ${showConsole ? "hidden md:block" : ""}`}
+        >
           {activeTab === "control" ? (
             <Channels
               channels={channels}
@@ -195,7 +220,7 @@ function AppInner() {
               onClick={() => setShowConsole(false)}
             >
               <X size={13} />
-              Close console
+              {m.console_hide_title()}
             </button>
             <Console lines={lines} />
           </div>
@@ -211,7 +236,11 @@ function AppInner() {
             setScanResults(null);
           }}
           onSubmit={(ssid, pass) =>
-            sendJsonMessage({ cmd: "wifi_set_credentials", ssid, password: pass })
+            sendJsonMessage({
+              cmd: "wifi_set_credentials",
+              ssid,
+              password: pass,
+            })
           }
           onScan={() => {
             setScanResults(null);

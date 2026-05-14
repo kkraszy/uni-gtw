@@ -4,9 +4,43 @@ import { Button } from "./ui/Button";
 import { FieldLabel } from "./ui/FieldLabel";
 import { Channel, DeviceClass, DEVICE_CLASS_OPTIONS, toMqttName } from "./channelTypes";
 import { PacketInfo } from "./wsTypes";
+import { m } from "./paraglide/messages.js";
 
 // cosmo_cmd_t values for motion commands
 const MOTION_CMDS = new Set([1, 2, 4]); // STOP=1, UP=2, DOWN=4
+
+function deviceClassLabel(cls: DeviceClass): string {
+  switch (cls) {
+    case "generic":
+      return m.device_class_generic();
+    case "awning":
+      return m.device_class_awning();
+    case "blind":
+      return m.device_class_blind();
+    case "curtain":
+      return m.device_class_curtain();
+    case "damper":
+      return m.device_class_damper();
+    case "door":
+      return m.device_class_door();
+    case "garage":
+      return m.device_class_garage();
+    case "gate":
+      return m.device_class_gate();
+    case "shade":
+      return m.device_class_shade();
+    case "shutter":
+      return m.device_class_shutter();
+    case "window":
+      return m.device_class_window();
+    case "light":
+      return m.device_class_light();
+    case "switch":
+      return m.device_class_switch();
+    case "hidden":
+      return m.device_class_hidden();
+  }
+}
 
 interface ChannelFormProps {
   /** undefined → create mode; defined → edit mode */
@@ -91,13 +125,13 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
   return (
     <div class="bg-zinc-900 rounded border border-zinc-700 p-2 mb-2">
       <p class="text-zinc-400 text-xs font-semibold mb-2">
-        {isEdit ? `Edit: ${channel!.name}` : "New Channel"}
+        {isEdit ? m.form_edit_channel({ name: channel!.name }) : m.form_new_channel()}
       </p>
 
-      <FieldLabel>Channel name</FieldLabel>
+      <FieldLabel>{m.form_channel_name_label()}</FieldLabel>
       <input
         type="text"
-        placeholder="Channel name"
+        placeholder={m.form_channel_name_placeholder()}
         value={name}
         maxLength={32}
         onInput={(e) => handleNameChange((e.target as HTMLInputElement).value)}
@@ -105,7 +139,7 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
         class="w-full bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs mb-2 font-mono"
       />
 
-      <FieldLabel>Protocol</FieldLabel>
+      <FieldLabel>{m.form_protocol_label()}</FieldLabel>
       <select
         value={proto}
         onChange={(e) => setProto((e.target as HTMLSelectElement).value as "1way" | "2way")}
@@ -115,7 +149,7 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
         <option value="2way">COSMO 2WAY</option>
       </select>
 
-      <FieldLabel>Device class</FieldLabel>
+      <FieldLabel>{m.form_device_class_label()}</FieldLabel>
       <select
         value={deviceClass}
         onChange={(e) => setDeviceClass((e.target as HTMLSelectElement).value as DeviceClass)}
@@ -123,12 +157,12 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
       >
         {DEVICE_CLASS_OPTIONS.map((o) => (
           <option key={o.value} value={o.value}>
-            {o.label}
+            {deviceClassLabel(o.value)}
           </option>
         ))}
       </select>
 
-      <FieldLabel>MQTT name</FieldLabel>
+      <FieldLabel>{m.form_mqtt_name_label()}</FieldLabel>
       <input
         type="text"
         placeholder="mqtt_name"
@@ -146,7 +180,7 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
             onChange={(e) => setForceTilt((e.target as HTMLInputElement).checked)}
             class="accent-blue-500"
           />
-          Force tilt support
+          {m.form_force_tilt()}
         </label>
       )}
 
@@ -159,10 +193,10 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
               onChange={(e) => setBidirFeedback((e.target as HTMLInputElement).checked)}
               class="accent-blue-500"
             />
-            Bidirectional feedback
+            {m.form_bidirectional_feedback()}
           </label>
           <div class={!bidirFeedback ? "opacity-40 pointer-events-none" : ""}>
-            <FieldLabel>Feedback timeout (s)</FieldLabel>
+            <FieldLabel>{m.form_feedback_timeout_label()}</FieldLabel>
             <input
               type="number"
               min={0}
@@ -182,7 +216,7 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
 
       {isEdit && (
         <div class="mb-2">
-          <FieldLabel>External remotes</FieldLabel>
+          <FieldLabel>{m.form_external_remotes_label()}</FieldLabel>
 
           {externalRemotes.length > 0 && (
             <div class="flex flex-col gap-0.5 mb-1">
@@ -198,7 +232,7 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
                     type="button"
                     onClick={() => handleRemoveRemote(serial)}
                     class="text-zinc-500 hover:text-red-400 transition-colors cursor-pointer bg-transparent border-0 p-0 flex items-center"
-                    title="Remove remote"
+                    title={m.form_remove_remote()}
                   >
                     <X size={12} />
                   </button>
@@ -211,10 +245,10 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
             <div class="flex flex-col gap-1">
               <div class="flex items-center gap-1.5 text-xs text-amber-300 bg-amber-950 border border-amber-800 rounded px-2 py-1.5">
                 <Radio size={12} class="shrink-0 animate-pulse" />
-                Press any button on the remote paired to this motor…
+                {m.form_listen_hint()}
               </div>
               <Button onClick={() => setListenMode(false)} class="w-full text-xs">
-                Cancel
+                {m.cancel()}
               </Button>
             </div>
           ) : (
@@ -225,7 +259,7 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
               }}
               class="w-full text-xs flex items-center justify-center gap-1"
             >
-              <Plus size={12} /> Add remote
+              <Plus size={12} /> {m.form_add_remote()}
             </Button>
           )}
         </div>
@@ -233,10 +267,10 @@ export function ChannelForm({ channel, onSubmit, onCancel, lastPacketRx }: Chann
 
       <div class="flex gap-1">
         <Button variant="primary" disabled={!name.trim()} onClick={handleSubmit} class="flex-1">
-          {isEdit ? "Save" : "Create"}
+          {isEdit ? m.form_save() : m.form_create()}
         </Button>
         <Button onClick={onCancel} class="flex-1">
-          Cancel
+          {m.cancel()}
         </Button>
       </div>
     </div>

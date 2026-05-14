@@ -22,20 +22,32 @@ import { ChannelForm } from "./ChannelForm";
 import { rssiToSignalIcon } from "./icons";
 import { Channel, ChannelState } from "./channelTypes";
 import { PacketInfo } from "./wsTypes";
+import { m } from "./paraglide/messages.js";
 
 /* ── State display ───────────────────────────────────────────────────────── */
 
-const STATE_LABEL: Record<ChannelState, string> = {
-  unknown: "Unknown",
-  closing: "Closing",
-  closed: "Closed",
-  opening: "Opening",
-  open: "Open",
-  comfort: "Comfort",
-  partially_open: "Partial",
-  obstruction: "Obstruction",
-  in_motion: "In Motion",
-};
+function stateLabel(state: ChannelState): string {
+  switch (state) {
+    case "unknown":
+      return m.state_unknown();
+    case "closing":
+      return m.state_closing();
+    case "closed":
+      return m.state_closed();
+    case "opening":
+      return m.state_opening();
+    case "open":
+      return m.state_open();
+    case "comfort":
+      return m.state_comfort();
+    case "partially_open":
+      return m.state_partially_open();
+    case "obstruction":
+      return m.state_obstruction();
+    case "in_motion":
+      return m.state_in_motion();
+  }
+}
 
 const STATE_CHIP_CLASS: Record<ChannelState, string> = {
   unknown: "bg-zinc-800 text-zinc-400 border-zinc-700",
@@ -52,41 +64,41 @@ const STATE_CHIP_CLASS: Record<ChannelState, string> = {
 /* ── Time formatting ─────────────────────────────────────────────────────── */
 
 export function formatLastSeen(ts: number): string {
-  if (!ts) return "Never";
+  if (!ts) return m.time_never();
   const diff = Math.floor(Date.now() / 1000 - ts);
-  if (diff < 5) return "just now";
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 5) return m.time_just_now();
+  if (diff < 60) return m.time_seconds_ago({ n: diff });
+  if (diff < 3600) return m.time_minutes_ago({ n: Math.floor(diff / 60) });
+  return m.time_hours_ago({ n: Math.floor(diff / 3600) });
 }
 
 /* ── Extra / advanced button definitions ─────────────────────────────────── */
 
-const EXTRA_CMD_ROWS: { label: string; value: string }[][] = [
+const getExtraCmdRows = (): { label: string; value: string }[][] => [
   [
-    { label: "Prog", value: "PROG" },
-    { label: "Stop+Up", value: "STOP_UP" },
+    { label: m.cmd_prog(), value: "PROG" },
+    { label: m.cmd_stop_up(), value: "STOP_UP" },
   ],
   [
-    { label: "Up+Down", value: "UP_DOWN" },
-    { label: "Stop+Down", value: "STOP_DOWN" },
+    { label: m.cmd_up_down(), value: "UP_DOWN" },
+    { label: m.cmd_stop_down(), value: "STOP_DOWN" },
   ],
   [
-    { label: "Stop Hold", value: "STOP_HOLD" },
-    { label: "Request Position", value: "REQUEST_POSITION" },
+    { label: m.cmd_stop_hold(), value: "STOP_HOLD" },
+    { label: m.cmd_request_position(), value: "REQUEST_POSITION" },
   ],
 ];
 
-const PAYLOAD_CMDS: { label: string; value: string; max: number }[] = [
-  { label: "Set Position", value: "SET_POSITION", max: 100 },
-  { label: "Set Tilt", value: "SET_TILT", max: 255 },
-  { label: "Request Feedback", value: "REQUEST_FEEDBACK", max: 255 },
+const getPayloadCmds = (): { label: string; value: string; max: number }[] => [
+  { label: m.cmd_set_position(), value: "SET_POSITION", max: 100 },
+  { label: m.cmd_set_tilt(), value: "SET_TILT", max: 255 },
+  { label: m.cmd_request_feedback(), value: "REQUEST_FEEDBACK", max: 255 },
 ];
 
 /* ── Sub-components ──────────────────────────────────────────────────────── */
 
 function StateChip({ ch }: { ch: Channel }) {
-  const label = STATE_LABEL[ch.state];
+  const label = stateLabel(ch.state);
   const chipCls = STATE_CHIP_CLASS[ch.state];
   const SignalIcon = ch.last_seen_ts ? rssiToSignalIcon(ch.rssi) : CircleHelp;
   const timeStr = ch.last_seen_ts ? formatLastSeen(ch.last_seen_ts) : "-";
@@ -105,7 +117,7 @@ function StateChip({ ch }: { ch: Channel }) {
                 ? "hourglass-spinning"
                 : ""
             }`}
-            title="Optimistic — awaiting device confirmation"
+            title={m.state_optimistic_title()}
           >
             <Hourglass size={10} />
           </span>
@@ -113,7 +125,7 @@ function StateChip({ ch }: { ch: Channel }) {
         {ch.state_type === "timed_out" && (
           <span
             class="inline-flex items-center text-red-400 opacity-90"
-            title="Timed out — no device confirmation received"
+            title={m.state_timed_out_title()}
           >
             <CircleAlert size={10} />
           </span>
@@ -165,7 +177,7 @@ function ControlGrid({
   return (
     <div class="grid grid-cols-3 gap-1 w-fit">
       {empty}
-      <ControlButton onClick={() => sendCmd("UP")} title="Up" variant="primary">
+      <ControlButton onClick={() => sendCmd("UP")} title={m.btn_up()} variant="primary">
         <ChevronUp size={28} />
       </ControlButton>
       {empty}
@@ -173,7 +185,7 @@ function ControlGrid({
       {hasTilt ? (
         <ControlButton
           onClick={() => sendCmd("TILT_INCREASE")}
-          title="Tilt increase"
+          title={m.btn_tilt_increase()}
           variant="secondary"
         >
           <RotateCw size={22} />
@@ -181,13 +193,13 @@ function ControlGrid({
       ) : (
         empty
       )}
-      <ControlButton onClick={() => sendCmd("STOP")} title="Stop" variant="secondary">
+      <ControlButton onClick={() => sendCmd("STOP")} title={m.btn_stop()} variant="secondary">
         <Square size={22} />
       </ControlButton>
       {hasTilt ? (
         <ControlButton
           onClick={() => sendCmd("TILT_DECREASE")}
-          title="Tilt decrease"
+          title={m.btn_tilt_decrease()}
           variant="secondary"
         >
           <RotateCcw size={22} />
@@ -197,7 +209,7 @@ function ControlGrid({
       )}
 
       {empty}
-      <ControlButton onClick={() => sendCmd("DOWN")} title="Down" variant="danger">
+      <ControlButton onClick={() => sendCmd("DOWN")} title={m.btn_down()} variant="danger">
         <ChevronDown size={28} />
       </ControlButton>
       {empty}
@@ -208,10 +220,10 @@ function ControlGrid({
 function LightSwitchControls({ sendCmd }: { sendCmd: (cmd: string) => void }) {
   return (
     <div class="flex gap-3 justify-center mb-1">
-      <ControlButton onClick={() => sendCmd("UP")} title="Power On" variant="primary">
+      <ControlButton onClick={() => sendCmd("UP")} title={m.btn_power_on()} variant="primary">
         <Power size={24} />
       </ControlButton>
-      <ControlButton onClick={() => sendCmd("DOWN")} title="Power Off" variant="danger">
+      <ControlButton onClick={() => sendCmd("DOWN")} title={m.btn_power_off()} variant="danger">
         <PowerOff size={24} />
       </ControlButton>
     </div>
@@ -230,7 +242,7 @@ export function ChannelCard({ ch, onSend, lastPacketRx }: ChannelCardProps) {
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [payloadValues, setPayloadValues] = useState<Record<string, number>>(() =>
-    Object.fromEntries(PAYLOAD_CMDS.map((c) => [c.value, 0])),
+    Object.fromEntries(getPayloadCmds().map((c) => [c.value, 0])),
   );
 
   const sendCmd = (cmd_name: string, extra_payload?: number) =>
@@ -265,12 +277,12 @@ export function ChannelCard({ ch, onSend, lastPacketRx }: ChannelCardProps) {
 
   const dropdownItems = [
     {
-      label: "Edit",
+      label: m.menu_edit(),
       icon: <Pencil size={12} />,
       onClick: () => setEditing((v) => !v),
     },
     {
-      label: "Delete",
+      label: m.menu_delete(),
       icon: <Trash2 size={12} />,
       danger: true,
       onClick: () => setConfirmDelete(true),
@@ -306,26 +318,26 @@ export function ChannelCard({ ch, onSend, lastPacketRx }: ChannelCardProps) {
       )}
 
       {/* Advanced collapsible */}
-      <Collapsible label="Advanced">
+      <Collapsible label={m.label_advanced()}>
         {/* Meta info moved here */}
         <div class="text-xs mb-2 pb-1 border-b border-zinc-800 flex flex-col gap-0.5">
           <div class="flex items-center gap-2">
-            <span class="text-zinc-500 w-16 shrink-0">Protocol</span>
+            <span class="text-zinc-500 w-16 shrink-0">{m.label_protocol()}</span>
             <span class="text-zinc-300">{ch.proto === "2way" ? "COSMO 2WAY" : "COSMO"}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-zinc-500 w-16 shrink-0">Counter</span>
+            <span class="text-zinc-500 w-16 shrink-0">{m.label_counter()}</span>
             <span class="text-zinc-300">{ch.counter}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-zinc-500 w-16 shrink-0">Serial</span>
+            <span class="text-zinc-500 w-16 shrink-0">{m.label_serial()}</span>
             <span class="text-zinc-300 font-mono">
               0x{ch.serial.toString(16).toUpperCase().padStart(8, "0")}
             </span>
           </div>
           {ch.last_seen_ts > 0 && (
             <div class="flex items-center gap-2">
-              <span class="text-zinc-500 w-16 shrink-0">RSSI</span>
+              <span class="text-zinc-500 w-16 shrink-0">{m.label_rssi()}</span>
               <span class="text-zinc-300 font-mono">{ch.rssi} dBm</span>
             </div>
           )}
@@ -334,12 +346,12 @@ export function ChannelCard({ ch, onSend, lastPacketRx }: ChannelCardProps) {
         {/* Stop button for light/switch (moved out of main controls) */}
         {isLightSwitch && (
           <Button variant="secondary" onClick={() => sendCmd("STOP")} class="w-full mb-1">
-            Stop
+            {m.btn_stop()}
           </Button>
         )}
 
         {/* Extra command button grid */}
-        {EXTRA_CMD_ROWS.map((row, ri) => (
+        {getExtraCmdRows().map((row, ri) => (
           <div key={ri} class="flex gap-1">
             {row.map((c) => (
               <Button
@@ -357,49 +369,48 @@ export function ChannelCard({ ch, onSend, lastPacketRx }: ChannelCardProps) {
 
         {/* Payload commands — 2-way only; SET_POSITION hidden for 1-way */}
         {ch.proto === "2way" &&
-          PAYLOAD_CMDS.filter((c) => c.value !== "SET_TILT" || hasTilt).map((c) => (
-            <div key={c.value} class="flex gap-1">
-              <Button
-                variant="secondary"
-                onClick={() => sendCmd(c.value, payloadValues[c.value])}
-                class="flex-1"
-              >
-                {c.label}
-              </Button>
-              <input
-                type="number"
-                min={0}
-                max={c.max}
-                value={payloadValues[c.value]}
-                onInput={(e) =>
-                  setPayloadValues((prev) => ({
-                    ...prev,
-                    [c.value]: Math.min(
-                      c.max,
-                      Math.max(0, parseInt((e.target as HTMLInputElement).value) || 0),
-                    ),
-                  }))
-                }
-                class="w-16 bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-1 py-1 text-xs text-center"
-              />
-            </div>
-          ))}
+          getPayloadCmds()
+            .filter((c) => c.value !== "SET_TILT" || hasTilt)
+            .map((c) => (
+              <div key={c.value} class="flex gap-1">
+                <Button
+                  variant="secondary"
+                  onClick={() => sendCmd(c.value, payloadValues[c.value])}
+                  class="flex-1"
+                >
+                  {c.label}
+                </Button>
+                <input
+                  type="number"
+                  min={0}
+                  max={c.max}
+                  value={payloadValues[c.value]}
+                  onInput={(e) =>
+                    setPayloadValues((prev) => ({
+                      ...prev,
+                      [c.value]: Math.min(
+                        c.max,
+                        Math.max(0, parseInt((e.target as HTMLInputElement).value) || 0),
+                      ),
+                    }))
+                  }
+                  class="w-16 bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-1 py-1 text-xs text-center"
+                />
+              </div>
+            ))}
       </Collapsible>
 
       {/* Delete confirmation modal */}
       {confirmDelete && (
         <Modal
-          title="Delete channel?"
-          okLabel="Delete"
+          title={m.delete_channel_title()}
+          okLabel={m.delete()}
           onOk={handleDelete}
           onCancel={() => setConfirmDelete(false)}
         >
-          <p class="text-sm text-zinc-300 leading-relaxed">
-            Before deleting a channel it is recommended to unpair it from the motor, as it is
-            impossible to do after deleting the channel without factory resetting the motor.
-          </p>
+          <p class="text-sm text-zinc-300 leading-relaxed">{m.delete_channel_warning()}</p>
           <p class="text-xs text-zinc-500 mt-2">
-            Serial:{" "}
+            {m.delete_channel_serial_prefix()}{" "}
             <span class="font-mono">0x{ch.serial.toString(16).toUpperCase().padStart(8, "0")}</span>
           </p>
         </Modal>

@@ -134,6 +134,55 @@ Initialised in `app_main` before WiFi. Reserved for future channel persistence.
 | `create_channel` | `name`, `proto` ("1way"\|"2way") | creates channel, random serial |
 | `channel_cmd` | `serial`, `cmd_name` ("UP"\|"DOWN"\|"STOP") | TX with repeat=3, counter++ |
 
+## i18n (Paraglide JS)
+
+The frontend uses [Paraglide JS](https://inlang.com/m/gerre34r/library-inlang-paraglideJs) for compile-time i18n. Supported locales: `en` (source) and `pl`.
+
+### File locations
+- `main/web/messages/en.json` — English source strings (all keys defined here)
+- `main/web/messages/pl.json` — Polish translations (must have all keys from `en.json`)
+- `main/web/project.inlang/settings.json` — Inlang project config
+- `main/web/src/paraglide/` — **generated** at build time by the Vite plugin; not committed
+
+### How it works
+- The Vite plugin (`paraglideVitePlugin`) generates `src/paraglide/messages.js` and `src/paraglide/runtime.js` on every `vite dev` / `vite build`.
+- `AuthGuard.tsx` calls `setLocale(lang)` once before rendering, using the `language` field from `/api/info`. No runtime locale switching.
+- All components import `{ m } from "../paraglide/messages.js"` and call `m.key_name()` at render time (never at module level — the locale might not be set yet).
+
+### Adding a new string
+1. Add the key to `messages/en.json` with the English text.
+2. Add the same key to `messages/pl.json` with the Polish translation.
+3. Use `m.key_name()` in the component.
+
+### Strings with markup tags (`{#strong}`, `{#code}`, etc.)
+Use `ParaglideMessage` from `@inlang/paraglide-js-react`:
+```tsx
+import { ParaglideMessage } from "@inlang/paraglide-js-react";
+
+<ParaglideMessage
+  message={m.my_key}
+  inputs={{}}
+  markup={{ strong: ({ children }) => <strong>{children}</strong> }}
+/>
+```
+
+### Strings with parameters (`{paramName}`)
+Pass as named inputs to the message function:
+```tsx
+m.form_edit_channel({ name: channel.name })
+m.time_seconds_ago({ n: seconds })
+```
+
+### Module-level string constants
+Never put `m.xxx()` calls at module level — they run before `setLocale()`. Use functions instead:
+```ts
+// Wrong — evaluates before locale is set
+const LABELS = { up: m.btn_up() };
+
+// Correct — called at render time
+const getLabels = () => ({ up: m.btn_up() });
+```
+
 ## Running cosmo unit tests
 
 ```bash

@@ -5,6 +5,7 @@ import { SectionCard } from "../ui/SectionCard";
 import { Collapsible } from "../ui/Collapsible";
 import { Globe, Server } from "lucide-preact";
 import type { SettingsData, MqttConfig } from "./types";
+import { m } from "../paraglide/messages.js";
 
 interface Props {
   settings: SettingsData;
@@ -19,10 +20,10 @@ export function NetworkSection({ settings, onChange }: Props) {
   };
 
   return (
-    <SectionCard icon={Globe} title="Network">
+    <SectionCard icon={Globe} title={m.net_section_title()}>
       {/* General */}
-      <SubSection title="General" divided={false}>
-        <FieldLabel>Hostname</FieldLabel>
+      <SubSection title={m.net_general_section()} divided={false}>
+        <FieldLabel>{m.label_hostname()}</FieldLabel>
         <input
           type="text"
           value={settings.hostname}
@@ -36,13 +37,13 @@ export function NetworkSection({ settings, onChange }: Props) {
           class="w-full bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs font-mono"
         />
         <Hint>
-          Reachable via mDNS as{" "}
+          {m.net_hostname_hint()}{" "}
           <span class="text-zinc-400 font-mono">{settings.hostname}.local</span>
         </Hint>
       </SubSection>
 
       {/* MQTT */}
-      <SubSection icon={Server} title="MQTT">
+      <SubSection icon={Server} title={m.net_mqtt_section()}>
         <label class="flex items-center gap-2 cursor-pointer select-none mb-3">
           <input
             type="checkbox"
@@ -50,13 +51,13 @@ export function NetworkSection({ settings, onChange }: Props) {
             onChange={(e) => updateMqtt("enabled", (e.target as HTMLInputElement).checked)}
             class="w-4 h-4 accent-blue-500"
           />
-          <span class="text-xs text-zinc-300">Enable MQTT</span>
+          <span class="text-xs text-zinc-300">{m.net_enable_mqtt()}</span>
         </label>
 
         <div class={mqttDisabled ? "opacity-40 pointer-events-none" : ""}>
           <div class="flex flex-col gap-3">
             <div>
-              <FieldLabel>MQTT URL</FieldLabel>
+              <FieldLabel>{m.net_mqtt_url_label()}</FieldLabel>
               <input
                 type="text"
                 value={settings.mqtt.url}
@@ -64,11 +65,11 @@ export function NetworkSection({ settings, onChange }: Props) {
                 onInput={(e) => updateMqtt("url", (e.target as HTMLInputElement).value)}
                 class="w-full bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs font-mono"
               />
-              <Hint>Use mqtt:// or mqtts://</Hint>
+              <Hint>{m.net_mqtt_url_hint()}</Hint>
             </div>
 
             <div>
-              <FieldLabel>Username</FieldLabel>
+              <FieldLabel>{m.net_username_label()}</FieldLabel>
               <input
                 type="text"
                 value={settings.mqtt.username}
@@ -78,7 +79,7 @@ export function NetworkSection({ settings, onChange }: Props) {
             </div>
 
             <div>
-              <FieldLabel>Password</FieldLabel>
+              <FieldLabel>{m.label_password()}</FieldLabel>
               <input
                 type="password"
                 value={settings.mqtt.password}
@@ -89,10 +90,10 @@ export function NetworkSection({ settings, onChange }: Props) {
           </div>
 
           <div class="border-t border-zinc-800 mt-4 pt-3">
-            <Collapsible label="Advanced">
+            <Collapsible label={m.label_advanced()}>
               <div class="flex flex-col gap-3 mt-2">
                 <div>
-                  <FieldLabel>MQTT prefix</FieldLabel>
+                  <FieldLabel>{m.net_mqtt_prefix_label()}</FieldLabel>
                   <input
                     type="text"
                     value={settings.mqtt.mqtt_prefix}
@@ -111,12 +112,12 @@ export function NetworkSection({ settings, onChange }: Props) {
                     }
                     class="w-4 h-4 accent-blue-500"
                   />
-                  <span class="text-xs text-zinc-300">Enable Home Assistant discovery</span>
+                  <span class="text-xs text-zinc-300">{m.net_ha_discovery()}</span>
                 </label>
 
                 {settings.mqtt.ha_discovery_enabled && (
                   <div>
-                    <FieldLabel>HA discovery prefix</FieldLabel>
+                    <FieldLabel>{m.net_ha_prefix_label()}</FieldLabel>
                     <input
                       type="text"
                       value={settings.mqtt.ha_prefix}

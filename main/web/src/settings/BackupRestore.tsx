@@ -2,6 +2,8 @@ import { useRef, useState } from "preact/hooks";
 import { Alert } from "../ui/Alert";
 import { Button } from "../ui/Button";
 import { Modal } from "../ui/Modal";
+import { m } from "../paraglide/messages.js";
+import { ParaglideMessage } from "@inlang/paraglide-js-react";
 
 interface Props {
   hostname: string;
@@ -34,7 +36,7 @@ export function BackupRestore({ hostname, authHeaders }: Props) {
         a.click();
         URL.revokeObjectURL(url);
       })
-      .catch(() => alert("Backup failed — check connection"));
+      .catch(() => alert(m.backup_restore_failed()));
   };
 
   const handleRestoreFileChange = (e: Event) => {
@@ -74,26 +76,24 @@ export function BackupRestore({ hostname, authHeaders }: Props) {
     <>
       <div class="border-t border-zinc-800 pt-4 mt-2 mb-4">
         <p class="text-zinc-500 text-xs font-semibold uppercase tracking-wide mb-2">
-          Backup &amp; Restore
+          {m.backup_section_title()}
         </p>
-        <p class="text-zinc-600 text-xs mb-3">
-          Export all settings and channels as a JSON file, or restore from a previous backup.
-        </p>
+        <p class="text-zinc-600 text-xs mb-3">{m.backup_description()}</p>
         <div class="flex gap-2 flex-wrap items-center">
           <Button onClick={downloadBackup} disabled={status === "saving" || status === "rebooting"}>
-            Export backup
+            {m.backup_export()}
           </Button>
           <Button
             onClick={() => fileInputRef.current?.click()}
             disabled={status === "saving" || status === "rebooting"}
           >
-            Import backup…
+            {m.backup_import()}
           </Button>
           {status === "rebooting" && (
-            <span class="text-amber-400 text-xs">Rebooting… reconnecting shortly</span>
+            <span class="text-amber-400 text-xs">{m.status_rebooting()}</span>
           )}
           {status === "error" && (
-            <span class="text-red-400 text-xs">Restore failed — check connection</span>
+            <span class="text-red-400 text-xs">{m.backup_restore_failed()}</span>
           )}
         </div>
         <input
@@ -107,8 +107,8 @@ export function BackupRestore({ hostname, authHeaders }: Props) {
 
       {showRestoreConfirm && (
         <Modal
-          title="Restore backup?"
-          okLabel="Restore &amp; Reboot"
+          title={m.backup_modal_title()}
+          okLabel={m.backup_modal_ok()}
           onOk={confirmRestore}
           onCancel={() => {
             setShowRestoreConfirm(false);
@@ -118,10 +118,15 @@ export function BackupRestore({ hostname, authHeaders }: Props) {
         >
           <p class="text-xs text-zinc-500 mb-3 font-mono break-all">{restoreFileName}</p>
           <p class="text-sm text-zinc-300 mb-3">
-            All current settings and channels will be <strong>overwritten</strong> with the data
-            from this backup. The device will reboot to apply the new configuration.
+            <ParaglideMessage
+              message={m.backup_modal_body}
+              inputs={{}}
+              markup={{
+                strong: ({ children }) => <strong>{children}</strong>,
+              }}
+            />
           </p>
-          <Alert variant="warning">This action cannot be undone.</Alert>
+          <Alert variant="warning">{m.backup_modal_warning()}</Alert>
         </Modal>
       )}
     </>

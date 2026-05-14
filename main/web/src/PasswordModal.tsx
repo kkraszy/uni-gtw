@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 import { Modal } from "./ui/Modal";
 import { InfoResponse } from "./wsTypes";
+import { m } from "./paraglide/messages.js";
 
 interface PasswordModalProps {
   onSuccess: (password: string) => void;
@@ -23,10 +24,10 @@ export function PasswordModal({ onSuccess }: PasswordModalProps) {
       if (info.web_password_valid === true) {
         onSuccess(value);
       } else {
-        setError("Incorrect password.");
+        setError(m.auth_wrong_password());
       }
     } catch {
-      setError("Could not reach the device.");
+      setError(m.auth_network_error());
     } finally {
       setChecking(false);
     }
@@ -38,19 +39,17 @@ export function PasswordModal({ onSuccess }: PasswordModalProps) {
 
   return (
     <Modal
-      title="Authentication required"
+      title={m.auth_title()}
       onOk={handleSubmit}
       onCancel={() => {}}
-      okLabel={checking ? "Checking…" : "Unlock"}
+      okLabel={checking ? m.auth_checking() : m.auth_unlock()}
       okDisabled={checking || !value}
     >
-      <p class="text-sm text-zinc-400 mb-3">
-        This gateway is password-protected. Enter the password to continue.
-      </p>
+      <p class="text-sm text-zinc-400 mb-3">{m.auth_hint()}</p>
       <input
         type="password"
         class="w-full bg-zinc-800 border border-zinc-600 rounded px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-blue-500"
-        placeholder="Password"
+        placeholder={m.auth_password_placeholder()}
         value={value}
         onInput={(e) => setValue((e.target as HTMLInputElement).value)}
         onKeyDown={handleKeyDown}

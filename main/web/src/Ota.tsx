@@ -6,6 +6,7 @@ import { Button } from "./ui/Button";
 import { Collapsible } from "./ui/Collapsible";
 import { SectionCard } from "./ui/SectionCard";
 import { OtaProgressPayload } from "./wsTypes";
+import { m } from "./paraglide/messages.js";
 
 interface OtaCheckResponse {
   update_available: boolean;
@@ -22,13 +23,13 @@ interface OtaProps {
 function statusLabel(status: OtaProgressPayload["status"]): string {
   switch (status) {
     case "starting":
-      return "Preparing update…";
+      return m.ota_status_starting();
     case "downloading":
-      return "Downloading firmware…";
+      return m.ota_status_downloading();
     case "done":
-      return "Update complete — device is rebooting.";
+      return m.ota_status_done();
     case "error":
-      return "Update failed.";
+      return m.ota_status_error();
   }
 }
 
@@ -44,7 +45,9 @@ export function Ota({ otaProgress }: OtaProps) {
   const [manualUrl, setManualUrl] = useState("");
 
   const checkForUpdates = () => {
-    const headers: Record<string, string> = password ? { "X-Auth": password } : {};
+    const headers: Record<string, string> = password
+      ? { "X-Auth": password }
+      : {};
     setChecking(true);
     setCheckError(null);
     fetch("/api/ota/check", { headers })
@@ -64,7 +67,9 @@ export function Ota({ otaProgress }: OtaProps) {
   }, [otaProgress?.status]);
 
   const applyUrl = (url: string) => {
-    const headers: Record<string, string> = password ? { "X-Auth": password } : {};
+    const headers: Record<string, string> = password
+      ? { "X-Auth": password }
+      : {};
     setApplyError(null);
     setApplying(true);
     setShowModal(true);
@@ -82,44 +87,54 @@ export function Ota({ otaProgress }: OtaProps) {
       });
   };
 
-  const handleApply = () => checkResult?.asset_url && applyUrl(checkResult.asset_url);
-  const handleApplyManual = () => manualUrl.trim() && applyUrl(manualUrl.trim());
+  const handleApply = () =>
+    checkResult?.asset_url && applyUrl(checkResult.asset_url);
+  const handleApplyManual = () =>
+    manualUrl.trim() && applyUrl(manualUrl.trim());
 
   const closeModal = () => {
     setShowModal(false);
     setApplying(false);
   };
 
-  const isDone = otaProgress?.status === "done" || otaProgress?.status === "error";
+  const isDone =
+    otaProgress?.status === "done" || otaProgress?.status === "error";
 
   return (
     <>
       <div class="p-4 overflow-y-auto h-full">
         <div class="max-w-lg mx-auto">
-          <SectionCard icon={Download} title="Firmware Updates">
+          <SectionCard icon={Download} title={m.ota_section_title()}>
             {checking && (
               <div class="flex items-center gap-2 text-xs text-zinc-400">
                 <Loader2 class="animate-spin" size={14} />
-                Checking for updates…
+                {m.ota_checking()}
               </div>
             )}
             {!checkResult && !checkError && !checking && (
               <Button variant="secondary" onClick={checkForUpdates}>
-                Check for Updates
+                {m.ota_check_button()}
               </Button>
             )}
             {checkError && (
-              <p class="text-xs text-red-400">Failed to check for updates: {checkError}</p>
+              <p class="text-xs text-red-400">
+                {m.ota_check_error({ error: checkError })}
+              </p>
             )}
             {checkResult && (
               <div class="text-xs text-zinc-400 flex flex-col gap-1">
                 <span>
-                  Current version:{" "}
-                  <span class="text-zinc-200">{checkResult.current_version ?? "unknown"}</span>
+                  {m.ota_current_version_label()}{" "}
+                  <span class="text-zinc-200">
+                    {checkResult.current_version ?? m.ota_unknown_version()}
+                  </span>
                 </span>
                 {checkResult.latest_version && (
                   <span>
-                    Latest version: <span class="text-zinc-200">{checkResult.latest_version}</span>
+                    {m.ota_latest_version_label()}{" "}
+                    <span class="text-zinc-200">
+                      {checkResult.latest_version}
+                    </span>
                   </span>
                 )}
               </div>
@@ -128,8 +143,10 @@ export function Ota({ otaProgress }: OtaProps) {
             {checkResult?.update_available ? (
               <div class="flex flex-col gap-3">
                 <p class="text-xs text-zinc-300">
-                  A new firmware version is available:{" "}
-                  <span class="text-blue-400 font-bold">{checkResult.latest_version}</span>
+                  {m.ota_update_available_prefix()}{" "}
+                  <span class="text-blue-400 font-bold">
+                    {checkResult.latest_version}
+                  </span>
                 </p>
                 {checkResult.html_url && (
                   <a
@@ -138,7 +155,7 @@ export function Ota({ otaProgress }: OtaProps) {
                     rel="noopener noreferrer"
                     class="text-xs text-blue-400 underline"
                   >
-                    View release notes on GitHub
+                    {m.ota_view_release_notes()}
                   </a>
                 )}
                 <Button
@@ -147,28 +164,31 @@ export function Ota({ otaProgress }: OtaProps) {
                   disabled={applying}
                   class="self-start"
                 >
-                  Apply Update
+                  {m.ota_apply_update()}
                 </Button>
               </div>
             ) : (
-              checkResult && <p class="text-xs text-zinc-400">Firmware is up to date.</p>
+              checkResult && (
+                <p class="text-xs text-zinc-400">{m.ota_up_to_date()}</p>
+              )
             )}
 
             <div class="border-t border-zinc-800 pt-4 -mt-1">
-              <Collapsible label="Advanced">
+              <Collapsible label={m.label_advanced()}>
                 <div class="flex flex-col gap-3 mt-2">
                   <div>
-                    <label class="block mb-1 text-xs text-zinc-400">Firmware URL</label>
+                    <label class="block mb-1 text-xs text-zinc-400">
+                      {m.ota_firmware_url_label()}
+                    </label>
                     <input
                       type="url"
                       value={manualUrl}
                       placeholder="https://…/firmware.bin"
-                      onInput={(e) => setManualUrl((e.target as HTMLInputElement).value)}
+                      onInput={(e) =>
+                        setManualUrl((e.target as HTMLInputElement).value)
+                      }
                       class="w-full bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs font-mono"
                     />
-                    <p class="text-zinc-600 text-xs mt-1">
-                      Override automatic version detection and flash a specific binary.
-                    </p>
                   </div>
                   <Button
                     variant="primary"
@@ -176,7 +196,7 @@ export function Ota({ otaProgress }: OtaProps) {
                     disabled={applying || !manualUrl.trim()}
                     class="self-start"
                   >
-                    Apply URL
+                    {m.ota_apply_url()}
                   </Button>
                 </div>
               </Collapsible>
@@ -187,18 +207,22 @@ export function Ota({ otaProgress }: OtaProps) {
 
       {showModal && (
         <Modal
-          title="Applying OTA Update"
+          title={m.ota_modal_title()}
           onCancel={isDone ? closeModal : () => {}}
           onOk={isDone ? closeModal : undefined}
-          okLabel="Close"
+          okLabel={m.close()}
           hideCloseButton={!isDone}
         >
           <div class="flex flex-col gap-3">
             {applyError ? (
-              <p class="text-xs text-red-400">Failed to start update: {applyError}</p>
+              <p class="text-xs text-red-400">
+                {m.ota_apply_error({ error: applyError })}
+              </p>
             ) : otaProgress ? (
               <>
-                <p class="text-xs text-zinc-300">{statusLabel(otaProgress.status)}</p>
+                <p class="text-xs text-zinc-300">
+                  {statusLabel(otaProgress.status)}
+                </p>
                 {otaProgress.progress !== null && (
                   <div class="w-full bg-zinc-800 rounded h-2">
                     <div
@@ -208,14 +232,16 @@ export function Ota({ otaProgress }: OtaProps) {
                   </div>
                 )}
                 {otaProgress.progress !== null && (
-                  <p class="text-xs text-zinc-400 text-right">{otaProgress.progress}%</p>
+                  <p class="text-xs text-zinc-400 text-right">
+                    {otaProgress.progress}%
+                  </p>
                 )}
                 {otaProgress.status === "error" && otaProgress.error && (
                   <p class="text-xs text-red-400">{otaProgress.error}</p>
                 )}
               </>
             ) : (
-              <p class="text-xs text-zinc-400">Starting update…</p>
+              <p class="text-xs text-zinc-400">{m.ota_starting()}</p>
             )}
           </div>
         </Modal>

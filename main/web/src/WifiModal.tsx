@@ -4,6 +4,7 @@ import { Modal } from "./ui/Modal";
 import { Button } from "./ui/Button";
 import { ScanEntry } from "./wsTypes";
 import { rssiToWifiIcon } from "./icons";
+import { m } from "./paraglide/messages.js";
 
 interface WifiModalProps {
   onClose: () => void;
@@ -44,16 +45,16 @@ export function WifiModal({ onClose, onSubmit, onScan, scanResults }: WifiModalP
 
   return (
     <Modal
-      title="WiFi Configuration"
+      title={m.wifi_title()}
       onOk={handleOk}
       onCancel={onClose}
-      okLabel="Connect"
+      okLabel={m.wifi_connect()}
       okDisabled={!canSubmit}
     >
       {/* Scan list */}
       <div class="mb-3">
         <div class="flex items-center justify-between mb-1">
-          <span class="text-xs text-zinc-400">Networks</span>
+          <span class="text-xs text-zinc-400">{m.wifi_networks()}</span>
           <Button
             onClick={() => {
               onScan();
@@ -61,7 +62,7 @@ export function WifiModal({ onClose, onSubmit, onScan, scanResults }: WifiModalP
             class="flex items-center gap-1 py-0.5 px-2"
           >
             <RefreshCw size={12} />
-            Rescan
+            {m.wifi_rescan()}
           </Button>
         </div>
 
@@ -69,11 +70,11 @@ export function WifiModal({ onClose, onSubmit, onScan, scanResults }: WifiModalP
           {scanning ? (
             <div class="flex items-center justify-center gap-2 h-16 text-zinc-400 text-xs">
               <LoaderCircle size={16} class="animate-spin" />
-              Scanning…
+              {m.wifi_scanning()}
             </div>
           ) : scanResults!.length === 0 ? (
             <div class="flex items-center justify-center h-16 text-zinc-500 text-xs">
-              No networks found
+              {m.wifi_no_networks()}
             </div>
           ) : (
             scanResults!.map((entry) => {
@@ -93,7 +94,9 @@ export function WifiModal({ onClose, onSubmit, onScan, scanResults }: WifiModalP
                   <WifiIcon size={14} />
                   <span class="flex-1 truncate">{entry.ssid}</span>
                   <span class="text-zinc-500">{entry.rssi} dBm</span>
-                  {entry.auth === 0 && <span class="text-zinc-500 text-[10px]">open</span>}
+                  {entry.auth === 0 && (
+                    <span class="text-zinc-500 text-[10px]">{m.wifi_open_badge()}</span>
+                  )}
                 </button>
               );
             })
@@ -103,12 +106,12 @@ export function WifiModal({ onClose, onSubmit, onScan, scanResults }: WifiModalP
 
       {/* Manual SSID input */}
       <div class="mb-2">
-        <label class="block text-xs text-zinc-400 mb-1">SSID</label>
+        <label class="block text-xs text-zinc-400 mb-1">{m.wifi_ssid_label()}</label>
         <input
           type="text"
           value={ssid}
           maxLength={32}
-          placeholder="Network name"
+          placeholder={m.wifi_network_name_placeholder()}
           onInput={(e) => setSsid((e.target as HTMLInputElement).value)}
           class="w-full bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs font-mono"
         />
@@ -117,19 +120,22 @@ export function WifiModal({ onClose, onSubmit, onScan, scanResults }: WifiModalP
       {/* Password */}
       <div>
         <label class="block text-xs text-zinc-400 mb-1">
-          Password {isOpen && <span class="text-zinc-500">(open network)</span>}
+          {m.label_password()}{" "}
+          {isOpen && <span class="text-zinc-500">{m.wifi_open_network()}</span>}
         </label>
         <input
           type="password"
           value={pass}
           disabled={isOpen}
           maxLength={63}
-          placeholder={isOpen ? "No password required" : "Password (min 8 chars)"}
+          placeholder={
+            isOpen ? m.wifi_no_password_placeholder() : m.wifi_password_min_placeholder()
+          }
           onInput={(e) => setPass((e.target as HTMLInputElement).value)}
           class="w-full bg-zinc-800 text-zinc-100 border border-zinc-600 rounded px-2 py-1 text-xs font-mono disabled:opacity-40"
         />
         {!isOpen && pass.length > 0 && pass.length < 8 && (
-          <p class="text-red-400 text-[10px] mt-0.5">Minimum 8 characters</p>
+          <p class="text-red-400 text-[10px] mt-0.5">{m.wifi_min_chars_error()}</p>
         )}
       </div>
     </Modal>

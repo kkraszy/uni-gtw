@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "preact/hooks";
 import { AuthContext } from "../AuthContext";
+import { m } from "../paraglide/messages.js";
 import { Button } from "../ui/Button";
 import { PageLoader } from "../ui/PageLoader";
 import { UiSection } from "./UiSection";
@@ -73,7 +74,7 @@ export function Settings() {
   if (saveStatus === "loading" || !draft) {
     return (
       <PageLoader
-        message={saveStatus === "error" ? "Failed to load settings." : "Loading settings…"}
+        message={saveStatus === "error" ? m.settings_load_error() : m.settings_loading()}
         error={saveStatus === "error"}
       />
     );
@@ -95,16 +96,18 @@ export function Settings() {
             variant="primary"
             onClick={save}
             disabled={saveStatus === "saving" || saveStatus === "rebooting" || hasErrors}
-            title={hasErrors ? "Fix GPIO conflicts before saving" : undefined}
+            title={hasErrors ? m.settings_gpio_hint() : undefined}
           >
-            {saveStatus === "saving" ? "Saving…" : "Save settings"}
+            {saveStatus === "saving" ? m.settings_saving() : m.settings_save()}
           </Button>
-          {saveStatus === "saved" && <span class="text-green-400 text-xs">Saved!</span>}
+          {saveStatus === "saved" && (
+            <span class="text-green-400 text-xs">{m.settings_saved()}</span>
+          )}
           {saveStatus === "rebooting" && (
-            <span class="text-amber-400 text-xs">Rebooting… reconnecting shortly</span>
+            <span class="text-amber-400 text-xs">{m.status_rebooting()}</span>
           )}
           {saveStatus === "error" && (
-            <span class="text-red-400 text-xs">Error — check connection</span>
+            <span class="text-red-400 text-xs">{m.status_error_connection()}</span>
           )}
         </div>
 
