@@ -1,0 +1,13 @@
+{
+  "channels_header": "Channels",
+  "channel_new": "New",
+  "channels_empty": "No channels yet.",
+  "channels_empty_hint": "Press {#strong}+ New{/strong} to add one.",
+  "radio_not_configured": "The radio module is not configured.",
+  "radio_not_configured_hint": "Set up the GPIO pins and enable it in Settings.",
+  "open_settings": "Open Settings",
+  "ws_connected": "Connected",
+  "ws_connecting": "Connecting…",
+  "ws_disconnected": "Disconnected",
+  "log_out": "Log out"
+}

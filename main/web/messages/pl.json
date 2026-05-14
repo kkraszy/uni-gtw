@@ -1,0 +1,13 @@
+{
+  "channels_header": "Kanały",
+  "channel_new": "Nowy",
+  "channels_empty": "Brak kanałów.",
+  "channels_empty_hint": "Naciśnij {#strong}+ Nowy{/strong}, aby dodać.",
+  "radio_not_configured": "Moduł radiowy nie jest skonfigurowany.",
+  "radio_not_configured_hint": "Skonfiguruj piny GPIO i włącz moduł w ustawieniach.",
+  "open_settings": "Otwórz ustawienia",
+  "ws_connected": "Połączono",
+  "ws_connecting": "Łączenie…",
+  "ws_disconnected": "Rozłączono",
+  "log_out": "Wyloguj"
+}
