@@ -12,7 +12,7 @@ This can be remediated by registering the external remote as an "External remote
 
 To do that: Click "Edit" on the channel the external remote is paired to. Under "External remotes" press "Add remote". Then press any button (STOP is recommended) on the remote you wish to add. The gateway will pick up it's ID and add it to the list. Then save the channel.
 
-TODO: screenshot
+![Screenshot of the add external remote button](/img/screenshot_external_remotes.png)
 
 
 ## Disabling bidirectional communication

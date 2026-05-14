@@ -27,9 +27,15 @@ Pairing a motor with uni-gtw works similarly to adding a new remote to the motor
 
 Access the gateway's web interface. Click on the "+ New" button on the main page. A form allowing you the set up the channel should appear. Each channel works like a virtual wireless remote. You should create a separate channel for each of the devices you wish to control. 
 
+![Screenshot of the new channel form](/img/screenshot_new_channel.png)
+
 The most important option is the choosing the RF protocol, it depends on when the device you wish to control was manufactured. See table below if you need help choosing.
 
-TODO: table
+| | COSMO | COSMO \| 2WAY |
+| --- | --- | --- |
+| Manufacturing date | before 2017.06  | after 2017.06 |
+| Example remote | <img src={require('/img/remote_cosmo.png').default}  height="200" alt="Image of an older COSMO remote"  style={{filter: "drop-shadow(0px 0px 8px #eeeeee88)"}} />  |  <img src={require('/img/remote_cosmo_2way.png').default}  height="200" alt="Image of an older COSMO remote"  style={{filter: "drop-shadow(0px 0px 8px #eeeeee88)"}} /> |
+| Known devices | Modules: Cosmo E <br/> Motors: Older ERS, and MR motors. | Modules: C-MR, C-GR, C-AR, C-ZR, C-SW, C-SW-2, C-ZAR, C-MR, C-MR BT HK, C-ZR <br /> Motors: ERS, MR, MR TUYA,  |
 
 The "Channel name" field controls how the device will be named in Home Assistant, while "MQTT name" controls the entity name. The "Device class" mainly controls which icon the device will use in Home Assistant. The exception is "Light" and "Switch", which will change the entity from [cover](https://www.home-assistant.io/integrations/cover/) to [light](https://www.home-assistant.io/integrations/light/) or [switch](https://www.home-assistant.io/integrations/switch/). This is useful for [C-SW](https://mobilus.pl/en/mobilus-products/moduly-mobilus/c-sw/), [C-SW-2](https://mobilus.pl/en/mobilus-products/moduly-mobilus/c-sw-2kanalowy/) receivers. "Hidden" will not expose the channel over MQTT, useful for testing without polluting your HA devices list.
 
