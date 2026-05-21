@@ -7,6 +7,7 @@
 
 #include "esp_log.h"
 #include "esp_mac.h"
+#include "nvs.h"
 
 static const char *TAG        = "config";
 static const char *CONFIG_PATH = "/littlefs/config.json";
@@ -135,6 +136,25 @@ void config_init(void)
 
     set_default_hostname();
     do_load();
+
+    /* Boot-time hardware preset written by the web flasher via NVS */
+    {
+        nvs_handle_t h;
+        if (nvs_open("boot", NVS_READWRITE, &h) == ESP_OK) {
+            int32_t preset = 0;
+            if (nvs_get_i32(h, "hw_preset", &preset) == ESP_OK) {
+                ESP_LOGI(TAG, "Applying boot hardware preset: %d", (int)preset);
+                config_lock();
+                g_config.hardware_preset = (enum hardware_preset_t)preset;
+                config_unlock();
+                /* background_worker not yet initialised — save synchronously */
+                config_do_save();
+                nvs_erase_key(h, "hw_preset");
+                nvs_commit(h);
+            }
+            nvs_close(h);
+        }
+    }
 }
 
 void config_mark_dirty(void)
