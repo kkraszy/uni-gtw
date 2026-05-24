@@ -13,3 +13,19 @@ Connect your board to this PC via USB, select a firmware release, and click the 
 import FirmwareFlasher from '@site/src/components/FirmwareFlasher';
 
 <FirmwareFlasher />
+
+## Manual flashing
+
+The firmware can be also manually flashed using the [esptool](https://github.com/espressif/esptool). It's available in Linux repositories and as a Windows executable. The pre-built firmware can be downloaded from the [Releases page of the GitHub repository](https://github.com/alufers/uni-gtw/releases) (download the `uni-gtw-[...].zip` file, not the source code).
+
+After unpacking the archive you should run one of the following commands, depending on the chip you are using:
+
+```bash
+esptool.py --chip esp32 --port [PORT] write-flash @flash_args-esp32
+# ...or...
+esptool.py --chip esp32s3 --port [PORT] write-flash @flash_args-esp32s3
+# ...or...
+esptool.py --chip esp32c3 --port [PORT] write-flash @flash_args-esp32c3
+```
+
+Replace `[PORT]` with the serial port of your device (for example `COM3`, `/dev/ttyACM0`).
