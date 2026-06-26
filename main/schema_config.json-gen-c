@@ -130,6 +130,7 @@ struct hardware_config_t {
     int gpio_pa_enable;   // External PA enable output (-1 to disable)
     int spi_freq_hz;
     int gpio_status_led;
+    int tcxo_mv;          // SX1262 TCXO voltage in mV (0 = use default 3300 mV)
 }
 
 struct hardware_preset_info_t {

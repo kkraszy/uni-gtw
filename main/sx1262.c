@@ -29,6 +29,7 @@ static uint8_t              s_hop_ch    = 0;    /* RX channel in use          */
 static bool                 s_in_tx     = false; /* true during TX sequence    */
 static SemaphoreHandle_t    s_spi_mutex = NULL;
 static esp_timer_handle_t   s_hop_timer = NULL;
+static int                  s_rxen_gpio = -1;   /* RXEN: HIGH=RX, LOW=TX      */
 
 /* ── SX1262 opcode constants ─────────────────────────────────────────────── */
 
@@ -171,9 +172,10 @@ static esp_err_t sx1262_ops_init(const struct hardware_config_t *hw,
   s_in_tx     = false;
   s_hopping_mode = RADIO_HOP_CHANNEL_0;
 
-  s_csn_gpio = hw->gpio_csn;
+  s_csn_gpio  = hw->gpio_csn;
   s_busy_gpio = hw->gpio_busy;
-  s_rst_gpio = hw->gpio_rst;
+  s_rst_gpio  = hw->gpio_rst;
+  s_rxen_gpio = hw->gpio_pa_enable; /* radio.c already drove it HIGH before init */
 
   /* ── CSN GPIO ── */
   gpio_reset_pin(s_csn_gpio);
@@ -228,10 +230,19 @@ static esp_err_t sx1262_ops_init(const struct hardware_config_t *hw,
   uint8_t p1 = SX_STDBY_RC;
   sx1262_cmd(SX_SET_STANDBY, &p1, 1);
 
-  /* ── 2. SetDio3AsTcxoCtrl(3.3V, 5ms) — enable 32 MHz TCXO on Heltec v4 ──
-   * Voltage = 0x07 (3.3V), timeout = 5ms = 5000/15.625µs = 320 = 0x000140  */
+  /* ── 2. SetDio3AsTcxoCtrl — enable 32 MHz TCXO via DIO3
+   * Voltage code per SX1262 datasheet: 0x02=1.8V (Wio-SX1262), 0x07=3.3V (Heltec v4)
+   * timeout = 5ms = 5000/15.625µs = 320 = 0x000140                          */
   {
-    uint8_t p[4] = {0x07, 0x00, 0x01, 0x40};
+    int mv = hw->tcxo_mv > 0 ? hw->tcxo_mv : 3300;
+    uint8_t vcode = mv <= 1600 ? 0x00 :
+                    mv <= 1700 ? 0x01 :
+                    mv <= 1800 ? 0x02 :
+                    mv <= 2200 ? 0x03 :
+                    mv <= 2400 ? 0x04 :
+                    mv <= 2700 ? 0x05 :
+                    mv <= 3000 ? 0x06 : 0x07;
+    uint8_t p[4] = {vcode, 0x00, 0x01, 0x40};
     sx1262_cmd(SX_SET_DIO3_AS_TCXO, p, 4);
   }
 
@@ -391,6 +402,10 @@ static void sx1262_ops_deinit(void) {
     gpio_reset_pin(s_rst_gpio);
   if (s_busy_gpio >= 0)
     gpio_reset_pin(s_busy_gpio);
+  if (s_rxen_gpio >= 0) {
+    gpio_reset_pin(s_rxen_gpio);
+    s_rxen_gpio = -1;
+  }
   gpio_reset_pin(s_csn_gpio);
   if (s_spi_mutex) {
     vSemaphoreDelete(s_spi_mutex);
@@ -409,6 +424,8 @@ static void sx1262_ops_enter_idle(void) {
 static void sx1262_ops_enter_rx(void) {
   xSemaphoreTake(s_spi_mutex, portMAX_DELAY);
   s_in_tx = false;
+  if (s_rxen_gpio >= 0)
+    gpio_set_level(s_rxen_gpio, 1);
   sx1262_set_freq(sx1262_channel_freq[s_hop_ch]);
   uint8_t pp[3] = {0xFF, 0xFF, 0xFF};
   sx1262_cmd(SX_SET_RX, pp, 3);
@@ -491,6 +508,10 @@ static esp_err_t sx1262_ops_transmit(const uint8_t *data, uint8_t len) {
   /* Write packet to buffer at offset 0 */
   sx1262_write_buf(0, data, len);
 
+  /* Switch RF path to TX */
+  if (s_rxen_gpio >= 0)
+    gpio_set_level(s_rxen_gpio, 0);
+
   /* Start TX (timeout=0 → single TX, chip returns to fallback mode after) */
   {
     uint8_t p[3] = {0x00, 0x00, 0x00};
@@ -504,6 +525,10 @@ static esp_err_t sx1262_ops_transmit(const uint8_t *data, uint8_t len) {
 
   if (timeout == 0)
     ESP_LOGW(TAG, "SX1262 TX timeout");
+
+  /* Return RF path to RX */
+  if (s_rxen_gpio >= 0)
+    gpio_set_level(s_rxen_gpio, 1);
 
   {
     uint8_t clr[2] = {0xFF, 0xFF};

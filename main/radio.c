@@ -65,7 +65,8 @@ static bool hardware_config_equal(const struct hardware_config_t *lhs,
            lhs->gpio_rst == rhs->gpio_rst &&
            lhs->gpio_busy == rhs->gpio_busy &&
            lhs->gpio_pa_enable == rhs->gpio_pa_enable &&
-           lhs->spi_freq_hz == rhs->spi_freq_hz;
+           lhs->spi_freq_hz == rhs->spi_freq_hz &&
+           lhs->tcxo_mv == rhs->tcxo_mv;
 }
 
 /* ── ISR ─────────────────────────────────────────────────────────────────── */

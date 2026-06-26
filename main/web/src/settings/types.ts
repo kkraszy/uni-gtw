@@ -21,6 +21,7 @@ export interface HardwareConfig {
   gpio_pa_enable: number;
   spi_freq_hz: number;
   gpio_status_led: number;
+  tcxo_mv: number;
 }
 
 export type HardwarePreset =

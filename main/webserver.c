@@ -587,15 +587,21 @@ void webserver_ws_broadcast_packet(bool is_tx,
  * For GET /api/settings. Channels and web_password are not included. */
 static esp_err_t send_settings_json(httpd_req_t *req)
 {
-    /* Temporarily clear web_password so it is not serialised.
-     * The full hash is only included in backup (backup_get_handler). */
+    /* Temporarily clear web_password and channels so they are not serialised.
+     * The full config with channels and password hash is only in backup. */
     config_lock();
-    sstr_t saved_pw        = g_config.web_password;
-    g_config.web_password  = sstr("");
-    sstr_t json            = sstr_new();
+    sstr_t saved_pw              = g_config.web_password;
+    g_config.web_password        = sstr("");
+    struct cosmo_channel_t *saved_channels = g_config.channels;
+    int saved_channels_len       = g_config.channels_len;
+    g_config.channels            = NULL;
+    g_config.channels_len        = 0;
+    sstr_t json                  = sstr_new();
     json_marshal_gateway_config_t(&g_config, json);
     sstr_free(g_config.web_password);
-    g_config.web_password  = saved_pw;
+    g_config.web_password        = saved_pw;
+    g_config.channels            = saved_channels;
+    g_config.channels_len        = saved_channels_len;
     config_unlock();
 
     httpd_resp_set_type(req, "application/json");

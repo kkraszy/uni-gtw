@@ -57,9 +57,10 @@ static const hardware_preset_def_t s_presets[] = {
             .gpio_gdo0 = 39,  /* DIO1 */
             .gpio_rst = 42,
             .gpio_busy = 40,
-            .gpio_pa_enable = -1,
+            .gpio_pa_enable = 38,  /* RXEN */
             .spi_freq_hz = 500000,
             .gpio_status_led = 48,
+            .tcxo_mv = 1800,
         },
     },
 };
